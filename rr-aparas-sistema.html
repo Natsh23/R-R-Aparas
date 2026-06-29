@@ -1650,7 +1650,17 @@ function removerLogo(){if(!confirm('Remover a logo?'))return;const cfg={...(CACH
 function aplicarLogo(b){const a=document.getElementById('logoArea');if(b){a.outerHTML=`<img id="logoArea" class="logo-img" src="${b}" alt="Logo">`;}else{document.getElementById('logoArea').outerHTML=`<div id="logoArea" class="logo-icon">R&R</div>`;}}
 async function salvarNomeEmpresa(){const nome=document.getElementById('cfgNomeEmpresa').value.trim();const cfg={...(CACHE.config||{})};if(nome){cfg.nomeEmpresa=nome;}else delete cfg.nomeEmpresa;await window._fsSet('config','global',cfg);document.getElementById('brandName').textContent=nome||'R&R Aparas';document.getElementById('loginNomeEmpresa').textContent=nome||'R&R Aparas de Papelão';mostrarMsgBackup('✓ Salvo!','success');}
 function exportarBackup(){const p={versao:'4.0',exportadoEm:new Date().toISOString(),clientes:CACHE.clientes||[],coletas:CACHE.coletas||[],transportes:CACHE.transportes||[],config:CACHE.config||{}};const b=new Blob([JSON.stringify(p,null,2)],{type:'application/json'});const u=URL.createObjectURL(b);const a=document.createElement('a');const ds=new Date().toISOString().slice(0,10).replace(/-/g,'');a.href=u;a.download=`rr-aparas-backup-${ds}.json`;a.click();URL.revokeObjectURL(u);mostrarMsgBackup('✓ Exportado!','success');}
-async function importarBackup(input){const file=input.files[0];if(!file)return;if(!confirm('⚠️ Substituirá TODOS os dados no Firestore. Continuar?')){input.value='';return;}const reader=new FileReader();reader.onload=async e=>{try{const data=JSON.parse(e.target.result);if(!data.clientes||!data.coletas)throw new Error('Inválido.');mostrarMsgBackup('Importando...','info');for(const c of data.clientes)await window._fsSave('clientes',c);for(const c of data.coletas)await window._fsSave('coletas',c);if(data.transportes)for(const t of data.transportes)await window._fsSave('transportes',t);if(data.config)await window._fsSet('config','global',data.config);mostrarMsgBackup('✓ Importado!','success');}catch(err){const cod=err.code?(' ['+err.code+']'):'';mostrarMsgBackup('✕ Erro'+cod+': '+err.message,'danger');console.error('Importação falhou:',err);}};reader.readAsText(file);input.value='';}
+async function importarBackup(input){const file=input.files[0];if(!file)return;if(!confirm('⚠️ Substituirá TODOS os dados no Firestore. Continuar?')){input.value='';return;}const reader=new FileReader();reader.onload=async e=>{try{const data=JSON.parse(e.target.result);if(!data.clientes||!data.coletas)throw new Error('Inválido.');mostrarMsgBackup('Importando...','info');
+        // Comprimir imagens de assinaturas antes de salvar (limite Firestore)
+        const assinaturasParaImportar = [];
+        if(data.assinaturas){
+          for(const a of data.assinaturas){
+            const ac = {...a};
+            if(ac.imagem) ac.imagem = await comprimirImagem(ac.imagem, 600);
+            assinaturasParaImportar.push(ac);
+          }
+        }
+        for(const c of data.clientes)await window._fsSave('clientes',c);for(const c of data.coletas)await window._fsSave('coletas',c);if(data.transportes)for(const t of data.transportes)await window._fsSave('transportes',t);if(data.config)await window._fsSet('config','global',data.config);mostrarMsgBackup('✓ Importado!','success');}catch(err){const cod=err.code?(' ['+err.code+']'):'';mostrarMsgBackup('✕ Erro'+cod+': '+err.message,'danger');console.error('Importação falhou:',err);}};reader.readAsText(file);input.value='';}
 function mostrarMsgBackup(msg,tipo){const el=document.getElementById('backupMsg');if(!el)return;el.innerHTML=`<div class="alert alert-${tipo}">${msg}</div>`;setTimeout(()=>{if(el)el.innerHTML='';},4000);}
 
 // PWA Service Worker
@@ -1751,15 +1761,17 @@ function switchAssinTab(tab) {
 function carregarFotoAssinatura(input) {
   const file = input.files[0]; if (!file) return;
   const reader = new FileReader();
-  reader.onload = e => {
+  reader.onload = async e => {
     const img = document.getElementById('uploadPreviewImg');
     const placeholder = document.getElementById('uploadPlaceholder');
     const btnTrocar = document.getElementById('btnTrocarFoto');
-    img.src = e.target.result; img.style.display = 'block';
+    // Comprimir imagem antes de usar
+    const comprimida = await comprimirImagem(e.target.result, 600);
+    img.src = comprimida || e.target.result; img.style.display = 'block';
     placeholder.style.display = 'none';
     if (btnTrocar) btnTrocar.style.display = 'block';
     document.getElementById('btnBaixarAssin').style.display = 'inline-flex';
-    window._assinUploadData = e.target.result;
+    window._assinUploadData = comprimida || e.target.result;
   };
   reader.readAsDataURL(file);
 }
@@ -1837,11 +1849,14 @@ async function salvarAssinatura() {
   const existing = editId ? (CACHE.assinaturas || []).find(x => x.id === editId) : null;
   const imagem = novaImagem || existing?.imagem || null;
 
+  // Comprimir imagem antes de salvar (limite Firestore ~1MB/doc)
+  const imagemComprimida = imagem ? await comprimirImagem(imagem, 600) : null;
+
   const obj = {
     id: editId || uid(),
     nome,
     cargo: document.getElementById('assinCargo').value.trim(),
-    imagem,
+    imagem: imagemComprimida,
     criadoEm: existing?.criadoEm || new Date().toISOString()
   };
 
@@ -2040,6 +2055,42 @@ async function testarConexaoFirestore() {
     mostrarMsgBackup('❌ Falha: ' + msg, 'danger');
     console.error('Diagnóstico Firestore:', e);
   }
+}
+
+
+// Comprime imagem base64 para caber no Firestore (max ~700KB base64)
+async function comprimirImagem(base64, maxKB) {
+  return new Promise((resolve) => {
+    if (!base64) { resolve(null); return; }
+    const MAX = (maxKB || 700) * 1024; // bytes do base64
+    if (base64.length <= MAX) { resolve(base64); return; }
+    const img = new Image();
+    img.onload = () => {
+      let w = img.width, h = img.height;
+      let qualidade = 0.7;
+      const canvas = document.createElement('canvas');
+      // Reduzir dimensões se necessário
+      const MAX_DIM = 400;
+      if (w > MAX_DIM || h > MAX_DIM) {
+        const ratio = Math.min(MAX_DIM/w, MAX_DIM/h);
+        w = Math.round(w * ratio); h = Math.round(h * ratio);
+      }
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, w, h);
+      ctx.drawImage(img, 0, 0, w, h);
+      let result = canvas.toDataURL('image/jpeg', qualidade);
+      // Reduzir qualidade até caber
+      while (result.length > MAX && qualidade > 0.2) {
+        qualidade -= 0.1;
+        result = canvas.toDataURL('image/jpeg', qualidade);
+      }
+      resolve(result);
+    };
+    img.onerror = () => resolve(null);
+    img.src = base64;
+  });
 }
 
 </script>
