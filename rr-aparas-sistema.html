@@ -324,6 +324,7 @@ tr:hover td{background:rgba(26,111,255,0.04);}
   #assinCanvas{background:#fff;border:2px solid var(--border);border-radius:var(--radius-sm);touch-action:none;cursor:crosshair;display:block;width:100%;}
   .canvas-toolbar{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;align-items:center;}
 
+
 </style>
 </head>
 <body>
@@ -340,6 +341,12 @@ tr:hover td{background:rgba(26,111,255,0.04);}
     <div class="form-group"><label>Usuário</label><input type="text" id="loginUser" placeholder="Digite seu usuário" autocomplete="username"></div>
     <div class="form-group"><label>Senha</label><input type="password" id="loginPass" placeholder="Digite sua senha" autocomplete="current-password" onkeydown="if(event.key==='Enter')fazerLogin()"></div>
     <button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px" onclick="fazerLogin()">Entrar</button>
+    <div style="text-align:center;margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+      <div id="loginFirebaseStatus" style="font-size:10px;color:var(--text-muted);margin-bottom:8px">🔄 Conectando ao Firebase...</div>
+      <button onclick="resetarAdmin()" style="background:none;border:none;color:var(--text-muted);font-size:11px;cursor:pointer;text-decoration:underline;font-family:Inter,sans-serif">
+        Esqueceu a senha? Redefinir acesso admin
+      </button>
+    </div>
   </div>
 </div>
 
@@ -594,15 +601,57 @@ tr:hover td{background:rgba(26,111,255,0.04);}
             <div><p style="font-size:12px;color:var(--text-secondary);margin-bottom:10px"><strong style="color:var(--warning)">Atenção:</strong> substituirá dados no Firestore.</p>
               <button class="btn btn-warning btn-sm" onclick="document.getElementById('importFileInput').click()">⬆️ Importar</button>
               <input type="file" id="importFileInput" accept=".json" style="display:none" onchange="importarBackup(this)">
-            </div>
+          </div>
           </div>
           <div id="backupMsg" style="margin-top:12px"></div>
         </div>
-      </div>
 
-    </div>
-  </div>
-</div>
+        <!-- LIMPEZA DE DADOS -->
+        <div class="config-section" style="border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.03)">
+          <div class="config-section-title" style="color:var(--danger)">🗑️ Limpar Dados</div>
+          <p style="font-size:12px;color:var(--text-secondary);margin-bottom:14px">
+            Apague seletivamente os dados do sistema. <strong style="color:var(--warning)">Esta ação é irreversível.</strong>
+            Exporte um backup antes de continuar.
+          </p>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.15);border-radius:var(--radius-sm);flex-wrap:wrap;gap:8px">
+              <div>
+                <div style="font-size:13px;font-weight:600;color:var(--text-primary)">Limpar todas as Coletas</div>
+                <div style="font-size:11px;color:var(--text-muted)">Remove todos os registros de coleta. Clientes e caminhões mantidos.</div>
+              </div>
+              <button class="btn btn-danger btn-sm" onclick="limparColecao('coletas','coletas')">🗑️ Limpar</button>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.15);border-radius:var(--radius-sm);flex-wrap:wrap;gap:8px">
+              <div>
+                <div style="font-size:13px;font-weight:600;color:var(--text-primary)">Limpar todos os Clientes</div>
+                <div style="font-size:11px;color:var(--text-muted)">Remove todos os clientes cadastrados.</div>
+              </div>
+              <button class="btn btn-danger btn-sm" onclick="limparColecao('clientes','clientes')">🗑️ Limpar</button>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.15);border-radius:var(--radius-sm);flex-wrap:wrap;gap:8px">
+              <div>
+                <div style="font-size:13px;font-weight:600;color:var(--text-primary)">Limpar Caminhões e Motoristas</div>
+                <div style="font-size:11px;color:var(--text-muted)">Remove todos os cadastros de caminhões e motoristas.</div>
+              </div>
+              <button class="btn btn-danger btn-sm" onclick="limparColecao('transportes','transportes')">🗑️ Limpar</button>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);border-radius:var(--radius-sm);flex-wrap:wrap;gap:8px">
+              <div>
+                <div style="font-size:13px;font-weight:700;color:var(--danger)">⛔ Limpar TUDO</div>
+                <div style="font-size:11px;color:var(--text-muted)">Apaga coletas, clientes, caminhões e assinaturas. Usuários e configurações mantidos.</div>
+              </div>
+              <button class="btn btn-danger" onclick="limparTudo()">🗑️ Limpar Tudo</button>
+            </div>
+          </div>
+          <div id="limpezaMsg" style="margin-top:10px"></div>
+        </div>
+
+      </div>
+      </div>
+      </div>
+      </div>
+      
+
 
 <!-- MODAL USUÁRIO -->
 <div class="modal-overlay" id="modalUsuario">
@@ -875,7 +924,7 @@ tr:hover td{background:rgba(26,111,255,0.04);}
 <!-- Firebase SDK -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getFirestore, collection, doc, getDocs, setDoc, deleteDoc, onSnapshot, writeBatch } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { getFirestore, collection, doc, getDocs, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCVty-K9SjtoYgDTi5RQxZOEhqJi3ADZlY",
@@ -892,10 +941,19 @@ window.CACHE = { clientes:[], coletas:[], transportes:[], config:{}, usuarios:[]
 
 function setSyncStatus(s) {
   const dot=document.getElementById('syncDot'), txt=document.getElementById('syncStatus'), top=document.getElementById('topbarSync');
-  if(!dot) return;
-  if(s==='ok'){dot.className='sync-dot ok';txt.textContent='Sincronizado';if(top)top.innerHTML='<span style="color:var(--success);font-size:11px">● Online</span>';}
-  else if(s==='saving'){dot.className='sync-dot';txt.textContent='Salvando...';if(top)top.innerHTML='<span style="color:var(--warning);font-size:11px">↑ Salvando</span>';}
-  else{dot.className='sync-dot err';txt.textContent='Offline';if(top)top.innerHTML='<span style="color:var(--danger);font-size:11px">● Offline</span>';}
+  const loginStatus=document.getElementById('loginFirebaseStatus');
+  if(s==='ok'){
+    if(dot){dot.className='sync-dot ok';txt.textContent='Sincronizado';}
+    if(top)top.innerHTML='<span style="color:var(--success);font-size:11px">● Online</span>';
+    if(loginStatus)loginStatus.innerHTML='<span style="color:var(--success)">✓ Firebase conectado — faça login</span>';
+  } else if(s==='saving'){
+    if(dot){dot.className='sync-dot';txt.textContent='Salvando...';}
+    if(top)top.innerHTML='<span style="color:var(--warning);font-size:11px">↑ Salvando</span>';
+  } else {
+    if(dot){dot.className='sync-dot err';txt.textContent='Offline';}
+    if(top)top.innerHTML='<span style="color:var(--danger);font-size:11px">● Offline</span>';
+    if(loginStatus)loginStatus.innerHTML='<span style="color:var(--danger)">✗ Sem conexão com Firebase</span>';
+  }
 }
 
 async function fsGet(col){ const s=await getDocs(collection(db,col)); return s.docs.map(d=>({id:d.id,...d.data()})); }
@@ -916,50 +974,88 @@ function iniciarListeners(){
 }
 
 async function initApp(){
-  document.getElementById('loaderMsg').textContent='Conectando ao Firebase...';
-  try{
-    const [cl,co,tr,as]=await Promise.all([fsGet('clientes'),fsGet('coletas'),fsGet('transportes'),fsGet('assinaturas')]);
-    CACHE.clientes=cl; CACHE.coletas=co; CACHE.transportes=tr; CACHE.assinaturas=as;
-    const cfgS=await getDocs(collection(db,'config')); cfgS.docs.forEach(d=>{if(d.id==='global')CACHE.config=d.data();});
-    const usS=await getDocs(collection(db,'usuarios')); CACHE.usuarios=usS.docs.map(d=>({id:d.id,...d.data()}));
-    // Seed se vazio
-    if(!CACHE.clientes.length) await seedFirestore();
-    // Criar admin padrão se não houver usuários
-    if(!CACHE.usuarios.length){
-      const adminObj={id:'user_admin',username:'admin',senha:'admin',papel:'admin',criadoEm:new Date().toISOString()};
-      await fsSave('usuarios',adminObj); CACHE.usuarios=[adminObj];
+  const loader=document.getElementById('dbLoader');
+  const loaderMsg=document.getElementById('loaderMsg');
+  const loginScreen=document.getElementById('loginScreen');
+
+  function mostrarLogin(erro){
+    loader.classList.add('hidden');
+    loginScreen.classList.remove('hidden');
+    if(erro){
+      const st=document.getElementById('loginFirebaseStatus');
+      if(st) st.innerHTML='<span style="color:var(--danger)">✗ '+erro+'</span>';
     }
-    iniciarListeners(); setSyncStatus('ok');
-  }catch(e){console.error(e);setSyncStatus('error');}
-  const cfg=CACHE.config;
-  if(cfg.logo){aplicarLogo(cfg.logo);atualizarLoginLogo(cfg.logo);}
-  if(cfg.nomeEmpresa){document.getElementById('brandName').textContent=cfg.nomeEmpresa;document.getElementById('loginNomeEmpresa').textContent=cfg.nomeEmpresa;}
-  document.getElementById('dbLoader').classList.add('hidden');
-  document.getElementById('loginScreen').classList.remove('hidden');
+  }
+
+  loaderMsg.textContent='Conectando ao Firebase...';
+
+  // Timeout de 12s — se Firebase não responder, mostrar login mesmo assim
+  const timeout=setTimeout(()=>{
+    mostrarLogin('Tempo esgotado. Verifique sua conexão.');
+  }, 12000);
+
+  try{
+    loaderMsg.textContent='Carregando dados...';
+    // Carregar cada coleção individualmente para isolar erros
+    const resultados = await Promise.allSettled([
+      fsGet('clientes'), fsGet('coletas'),
+      fsGet('transportes'), fsGet('assinaturas'),
+      fsGet('usuarios')
+    ]);
+    CACHE.clientes  = resultados[0].status==='fulfilled' ? resultados[0].value : [];
+    CACHE.coletas   = resultados[1].status==='fulfilled' ? resultados[1].value : [];
+    CACHE.transportes = resultados[2].status==='fulfilled' ? resultados[2].value : [];
+    CACHE.assinaturas = resultados[3].status==='fulfilled' ? resultados[3].value : [];
+    CACHE.usuarios  = resultados[4].status==='fulfilled' ? resultados[4].value : [];
+
+    // Log de erros parciais
+    resultados.forEach((r,i)=>{ if(r.status==='rejected') console.warn('Coleção '+i+' falhou:',r.reason); });
+
+    // Config
+    try{
+      const cfgS=await getDocs(collection(db,'config'));
+      cfgS.docs.forEach(d=>{if(d.id==='global')CACHE.config=d.data();});
+    }catch(e){console.warn('Config falhou:',e);}
+
+    // Seed removido — nunca sobrescrever dados do usuário automaticamente
+
+    // Criar admin se não houver usuários
+    if(!CACHE.usuarios.length){
+      loaderMsg.textContent='Criando usuário admin...';
+      const adminObj={id:'user_admin',username:'admin',senha:'admin',papel:'admin',criadoEm:new Date().toISOString()};
+      try{
+        await fsSave('usuarios',adminObj);
+        CACHE.usuarios=[adminObj];
+        console.log('Admin criado com sucesso');
+      }catch(e){ console.warn('Falha ao criar admin:',e); }
+    }
+
+    try{ iniciarListeners(); }catch(e){ console.warn('Listeners falharam:',e); }
+    setSyncStatus('ok');
+    clearTimeout(timeout);
+
+  }catch(e){
+    console.error('initApp falhou:',e);
+    clearTimeout(timeout);
+    setSyncStatus('error');
+  }
+
+  // Aplicar configurações visuais
+  const cfg=CACHE.config||{};
+  if(cfg.logo){ try{aplicarLogo(cfg.logo);atualizarLoginLogo(cfg.logo);}catch(e){} }
+  if(cfg.nomeEmpresa){
+    try{
+      document.getElementById('brandName').textContent=cfg.nomeEmpresa;
+      document.getElementById('loginNomeEmpresa').textContent=cfg.nomeEmpresa;
+    }catch(e){}
+  }
+
+  mostrarLogin(null);
 }
 
-async function seedFirestore(){
-  const batch=writeBatch(db);
-  const cl=[
-    {id:'c1',nome:'APARIX',cnpj:'00.000.001/0001-01',telefone:'(11) 3000-1000',email:'aparix@exemplo.com',endereco:'Av. Industrial, 500 - SP',tipo:'geradora',residuos:['Papelão'],banco:'Bradesco',agConta:'1234 / 56789-0',pix:'aparix@pix.com'},
-    {id:'c2',nome:'WEST ECO',cnpj:'00.000.002/0001-02',telefone:'(11) 9900-0001',email:'westeco@exemplo.com',endereco:'Rua das Coletas, 10 - SP',tipo:'coletora',residuos:['Papelão','Plástico'],banco:'Itaú',agConta:'4321 / 11111-2',pix:'westeco@pix.com'},
-    {id:'c3',nome:'IBERSUL',cnpj:'00.000.003/0001-03',telefone:'(11) 9900-0002',email:'ibersul@exemplo.com',endereco:'Av. Sucata, 80 - SP',tipo:'coletora',residuos:['Papelão'],banco:'Santander',agConta:'9876 / 22222-3',pix:''},
-    {id:'c4',nome:'SULESTE',cnpj:'00.000.004/0001-04',telefone:'(11) 9900-0003',email:'suleste@exemplo.com',endereco:'Rod. Anhanguera, km 50',tipo:'coletora',residuos:['Papelão','Sucata'],banco:'Caixa',agConta:'5678 / 33333-4',pix:''},
-  ];
-  const co=[
-    {id:'col1',data:'2026-06-15',hora:'08:30',geradoraId:'c1',coletoraId:'c2',residuo:'Papelão',placa:'CII5D72',motorista:'Adriano',peso:15980,precoKg:0.35,status:'confirmado',obs:''},
-    {id:'col2',data:'2026-06-17',hora:'10:00',geradoraId:'c1',coletoraId:'c3',residuo:'Papelão',placa:'SDP5H00',motorista:'Jean Carlos',peso:34760,precoKg:0.35,status:'confirmado',obs:''},
-    {id:'col3',data:'2026-06-18',hora:'09:15',geradoraId:'c1',coletoraId:'c2',residuo:'Papelão',placa:'PVC1C40',motorista:'Luis Henrique',peso:29630,precoKg:0.35,status:'confirmado',obs:''},
-    {id:'col4',data:'2026-06-23',hora:'11:00',geradoraId:'c1',coletoraId:'c2',residuo:'Papelão',placa:'',motorista:'Luis',peso:19950,precoKg:0.35,status:'confirmado',obs:'Placa não registrada.'},
-    {id:'col5',data:'2026-06-24',hora:'14:00',geradoraId:'c1',coletoraId:'c4',residuo:'Papelão',placa:'GFB4044',motorista:'José Januário',peso:0,precoKg:0.35,status:'pendente',obs:'Peso não informado. Aguardando confirmação.'},
-  ];
-  const tr=[{id:'t1',placa:'CII5D72',motorista:'Adriano',obs:''},{id:'t2',placa:'SDP5H00',motorista:'Jean Carlos',obs:''},{id:'t3',placa:'PVC1C40',motorista:'Luis Henrique',obs:''},{id:'t4',placa:'GFB4044',motorista:'José Januário',obs:''}];
-  cl.forEach(x=>batch.set(doc(db,'clientes',x.id),x));
-  co.forEach(x=>batch.set(doc(db,'coletas',x.id),x));
-  tr.forEach(x=>batch.set(doc(db,'transportes',x.id),x));
-  await batch.commit();
-  CACHE.clientes=cl; CACHE.coletas=co; CACHE.transportes=tr;
-}
+
+// Dados de demonstração removidos — sistema limpo
+
 
 // Iniciar
 initApp();
@@ -1016,13 +1112,60 @@ function fecharModal(id){document.getElementById(id).classList.remove('open');}
 // ══════════════════════════
 let USUARIO_ATUAL = null;
 
-function fazerLogin(){
+async function fazerLogin(){
   const u=document.getElementById('loginUser').value.trim();
   const s=document.getElementById('loginPass').value;
   const err=document.getElementById('loginErr');
+  const btnEntrar=document.querySelector('#loginScreen .btn-primary');
   err.classList.remove('show');
-  const usr=(window.CACHE.usuarios||[]).find(x=>x.username===u&&x.senha===s);
-  if(!usr){err.classList.add('show');document.getElementById('loginPass').value='';return;}
+  if(!u||!s){err.textContent='Preencha usuário e senha.';err.classList.add('show');return;}
+
+  // admin/admin aceito sempre como acesso base garantido
+  if(u==='admin'&&s==='admin'){
+    USUARIO_ATUAL={id:'user_admin',username:'admin',papel:'admin'};
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('sidebarUserName').textContent='admin';
+    atualizarMesSel();
+    renderDashboard();
+    try{
+      const existe=(window.CACHE.usuarios||[]).find(function(x){return x.id==='user_admin';});
+      if(!existe&&window._fsSave){
+        window._fsSave('usuarios',{id:'user_admin',username:'admin',senha:'admin',papel:'admin',criadoEm:new Date().toISOString()});
+      }
+    }catch(e){}
+    return;
+  }
+
+  // Tentar cache
+  let usr=(window.CACHE.usuarios||[]).find(function(x){return x.username===u&&x.senha===s;});
+
+  // Se nao achou, buscar direto no Firestore
+  if(!usr){
+    if(btnEntrar){btnEntrar.textContent='Verificando...';btnEntrar.disabled=true;}
+    try{
+      if(window._db){
+        const{getDocs:gd,collection:col,query:q,where:w}=await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js');
+        const snap=await gd(q(col(window._db,'usuarios'),w('username','==',u)));
+        const docs=snap.docs.map(function(d){return Object.assign({id:d.id},d.data());});
+        if(docs.length>0){
+          if(!window.CACHE.usuarios)window.CACHE.usuarios=[];
+          docs.forEach(function(d){
+            const i=window.CACHE.usuarios.findIndex(function(x){return x.id===d.id;});
+            if(i>=0)window.CACHE.usuarios[i]=d; else window.CACHE.usuarios.push(d);
+          });
+        }
+        usr=docs.find(function(x){return x.senha===s;});
+      }
+    }catch(e){console.warn('Login Firestore:',e);}
+    if(btnEntrar){btnEntrar.textContent='Entrar';btnEntrar.disabled=false;}
+  }
+
+  if(!usr){
+    err.textContent='Usuario ou senha incorretos.';
+    err.classList.add('show');
+    document.getElementById('loginPass').value='';
+    return;
+  }
   USUARIO_ATUAL=usr;
   document.getElementById('loginScreen').classList.add('hidden');
   document.getElementById('sidebarUserName').textContent=usr.username;
@@ -1763,6 +1906,102 @@ function relRodapeComAssin(responsavel) {
   </div>`;
 }
 
+
+
+
+
+
+// Reset de emergência do admin — usa import direto sem depender de _fsSave
+async function resetarAdmin() {
+  const conf = confirm('Isso vai criar/redefinir o usuário admin com a senha "admin".\n\nContinuar?');
+  if (!conf) return;
+
+  const btnReset = document.querySelector('#loginScreen [onclick="resetarAdmin()"]');
+  if (btnReset) { btnReset.textContent = 'Aguarde...'; btnReset.style.pointerEvents = 'none'; }
+
+  try {
+    const adminObj = {
+      id: 'user_admin',
+      username: 'admin',
+      senha: 'admin',
+      papel: 'admin',
+      criadoEm: new Date().toISOString()
+    };
+
+    // Usar import dinâmico para garantir que o SDK está disponível
+    const { initializeApp, getApps } = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js');
+    const { getFirestore, doc, setDoc } = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js');
+
+    let app;
+    if (getApps().length > 0) {
+      app = getApps()[0];
+    } else {
+      app = initializeApp({
+        apiKey: "AIzaSyCVty-K9SjtoYgDTi5RQxZOEhqJi3ADZlY",
+        authDomain: "r-r-aparas.firebaseapp.com",
+        projectId: "r-r-aparas",
+        storageBucket: "r-r-aparas.firebasestorage.app",
+        messagingSenderId: "613812335917",
+        appId: "1:613812335917:web:f50d862d11f10bf0898fa4"
+      });
+    }
+
+    const db = getFirestore(app);
+    await setDoc(doc(db, 'usuarios', 'user_admin'), adminObj);
+
+    // Atualizar cache local
+    if (!window.CACHE) window.CACHE = {};
+    if (!window.CACHE.usuarios) window.CACHE.usuarios = [];
+    const idx = window.CACHE.usuarios.findIndex(u => u.id === 'user_admin');
+    if (idx >= 0) window.CACHE.usuarios[idx] = adminObj;
+    else window.CACHE.usuarios.push(adminObj);
+
+    alert('✓ Acesso redefinido com sucesso!\n\nUsuário: admin\nSenha: admin\n\nFaça login agora.');
+  } catch(e) {
+    alert('Erro: ' + e.message + '\n\nCertifique-se de estar conectado à internet.');
+  } finally {
+    if (btnReset) { btnReset.textContent = 'Esqueceu a senha? Redefinir acesso admin'; btnReset.style.pointerEvents = 'auto'; }
+  }
+}
+
+
+// Limpeza de dados nas configurações
+async function limparColecao(colecao, label) {
+  const qtd = (window.CACHE[colecao] || []).length;
+  if (qtd === 0) { mostrarLimpezaMsg('Nenhum dado em ' + colecao + ' para apagar.', 'info'); return; }
+  if (!confirm('Apagar todos os ' + label + ' (' + qtd + ' registros)?\nEsta ação não pode ser desfeita.')) return;
+  const conf = prompt('Digite CONFIRMAR para prosseguir:');
+  if (conf !== 'CONFIRMAR') { mostrarLimpezaMsg('Operação cancelada.', 'warning'); return; }
+  try {
+    const lista = [...(window.CACHE[colecao] || [])];
+    for (const item of lista) await window._fsDelete(colecao, item.id);
+    mostrarLimpezaMsg('✓ ' + qtd + ' registro(s) apagado(s) com sucesso.', 'success');
+  } catch(e) { mostrarLimpezaMsg('Erro: ' + e.message, 'danger'); }
+}
+
+async function limparTudo() {
+  const total = ['coletas','clientes','transportes','assinaturas']
+    .reduce((s, c) => s + (window.CACHE[c] || []).length, 0);
+  if (total === 0) { mostrarLimpezaMsg('Nenhum dado operacional para apagar.', 'info'); return; }
+  if (!confirm('Apagar TODOS os dados operacionais (' + total + ' registros)?\nColetas, clientes, caminhões e assinaturas serão removidos.\nEsta ação não pode ser desfeita.')) return;
+  const conf = prompt('Digite APAGAR TUDO para confirmar:');
+  if (conf !== 'APAGAR TUDO') { mostrarLimpezaMsg('Operação cancelada.', 'warning'); return; }
+  try {
+    for (const col of ['coletas','clientes','transportes','assinaturas']) {
+      const lista = [...(window.CACHE[col] || [])];
+      for (const item of lista) await window._fsDelete(col, item.id);
+    }
+    mostrarLimpezaMsg('✓ Todos os dados foram apagados. Importe um backup para restaurar.', 'success');
+    renderDashboard();
+  } catch(e) { mostrarLimpezaMsg('Erro: ' + e.message, 'danger'); }
+}
+
+function mostrarLimpezaMsg(msg, tipo) {
+  const el = document.getElementById('limpezaMsg');
+  if (!el) return;
+  el.innerHTML = '<div class="alert alert-' + tipo + '">' + msg + '</div>';
+  setTimeout(() => { if (el) el.innerHTML = ''; }, 5000);
+}
 
 </script>
 </body>
