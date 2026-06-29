@@ -604,6 +604,9 @@ tr:hover td{background:rgba(26,111,255,0.04);}
           </div>
           </div>
           <div id="backupMsg" style="margin-top:12px"></div>
+          <div style="margin-top:8px">
+            <button class="btn btn-secondary btn-sm" onclick="testarConexaoFirestore()" style="font-size:11px">🔍 Testar conexão com Firestore</button>
+          </div>
         </div>
 
         <!-- LIMPEZA DE DADOS -->
@@ -936,7 +939,7 @@ const firebaseConfig = {
 };
 
 const fbApp = initializeApp(firebaseConfig);
-const db = getFirestore(fbApp);
+const db = getFirestore(fbApp); // banco padrão '(default)'
 window.CACHE = { clientes:[], coletas:[], transportes:[], config:{}, usuarios:[], assinaturas:[] };
 
 function setSyncStatus(s) {
@@ -957,7 +960,17 @@ function setSyncStatus(s) {
 }
 
 async function fsGet(col){ const s=await getDocs(collection(db,col)); return s.docs.map(d=>({id:d.id,...d.data()})); }
-async function fsSave(col,obj){ setSyncStatus('saving'); await setDoc(doc(db,col,obj.id),obj); setSyncStatus('ok'); }
+async function fsSave(col,obj){
+  setSyncStatus('saving');
+  try {
+    await setDoc(doc(db,col,obj.id),obj);
+    setSyncStatus('ok');
+  } catch(e) {
+    setSyncStatus('error');
+    console.error('fsSave erro ['+col+'/'+obj.id+']:', e.code, e.message);
+    throw e;
+  }
+}
 async function fsDelete(col,id){ setSyncStatus('saving'); await deleteDoc(doc(db,col,id)); setSyncStatus('ok'); }
 async function fsSet(col,id,data){ setSyncStatus('saving'); await setDoc(doc(db,col,id),data); setSyncStatus('ok'); }
 
@@ -1637,7 +1650,7 @@ function removerLogo(){if(!confirm('Remover a logo?'))return;const cfg={...(CACH
 function aplicarLogo(b){const a=document.getElementById('logoArea');if(b){a.outerHTML=`<img id="logoArea" class="logo-img" src="${b}" alt="Logo">`;}else{document.getElementById('logoArea').outerHTML=`<div id="logoArea" class="logo-icon">R&R</div>`;}}
 async function salvarNomeEmpresa(){const nome=document.getElementById('cfgNomeEmpresa').value.trim();const cfg={...(CACHE.config||{})};if(nome){cfg.nomeEmpresa=nome;}else delete cfg.nomeEmpresa;await window._fsSet('config','global',cfg);document.getElementById('brandName').textContent=nome||'R&R Aparas';document.getElementById('loginNomeEmpresa').textContent=nome||'R&R Aparas de Papelão';mostrarMsgBackup('✓ Salvo!','success');}
 function exportarBackup(){const p={versao:'4.0',exportadoEm:new Date().toISOString(),clientes:CACHE.clientes||[],coletas:CACHE.coletas||[],transportes:CACHE.transportes||[],config:CACHE.config||{}};const b=new Blob([JSON.stringify(p,null,2)],{type:'application/json'});const u=URL.createObjectURL(b);const a=document.createElement('a');const ds=new Date().toISOString().slice(0,10).replace(/-/g,'');a.href=u;a.download=`rr-aparas-backup-${ds}.json`;a.click();URL.revokeObjectURL(u);mostrarMsgBackup('✓ Exportado!','success');}
-async function importarBackup(input){const file=input.files[0];if(!file)return;if(!confirm('⚠️ Substituirá TODOS os dados no Firestore. Continuar?')){input.value='';return;}const reader=new FileReader();reader.onload=async e=>{try{const data=JSON.parse(e.target.result);if(!data.clientes||!data.coletas)throw new Error('Inválido.');mostrarMsgBackup('Importando...','info');for(const c of data.clientes)await window._fsSave('clientes',c);for(const c of data.coletas)await window._fsSave('coletas',c);if(data.transportes)for(const t of data.transportes)await window._fsSave('transportes',t);if(data.config)await window._fsSet('config','global',data.config);mostrarMsgBackup('✓ Importado!','success');}catch(err){mostrarMsgBackup('✕ Erro: '+err.message,'danger');}};reader.readAsText(file);input.value='';}
+async function importarBackup(input){const file=input.files[0];if(!file)return;if(!confirm('⚠️ Substituirá TODOS os dados no Firestore. Continuar?')){input.value='';return;}const reader=new FileReader();reader.onload=async e=>{try{const data=JSON.parse(e.target.result);if(!data.clientes||!data.coletas)throw new Error('Inválido.');mostrarMsgBackup('Importando...','info');for(const c of data.clientes)await window._fsSave('clientes',c);for(const c of data.coletas)await window._fsSave('coletas',c);if(data.transportes)for(const t of data.transportes)await window._fsSave('transportes',t);if(data.config)await window._fsSet('config','global',data.config);mostrarMsgBackup('✓ Importado!','success');}catch(err){const cod=err.code?(' ['+err.code+']'):'';mostrarMsgBackup('✕ Erro'+cod+': '+err.message,'danger');console.error('Importação falhou:',err);}};reader.readAsText(file);input.value='';}
 function mostrarMsgBackup(msg,tipo){const el=document.getElementById('backupMsg');if(!el)return;el.innerHTML=`<div class="alert alert-${tipo}">${msg}</div>`;setTimeout(()=>{if(el)el.innerHTML='';},4000);}
 
 // PWA Service Worker
@@ -2001,6 +2014,32 @@ function mostrarLimpezaMsg(msg, tipo) {
   if (!el) return;
   el.innerHTML = '<div class="alert alert-' + tipo + '">' + msg + '</div>';
   setTimeout(() => { if (el) el.innerHTML = ''; }, 5000);
+}
+
+
+// Diagnóstico de conexão Firestore
+async function testarConexaoFirestore() {
+  mostrarMsgBackup('🔄 Testando conexão...', 'info');
+  try {
+    // Teste de leitura
+    const snap = await window._db ? 
+      (await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js')).getDocs(
+        (await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js')).collection(window._db, 'usuarios')
+      ) : null;
+    if (!snap) throw new Error('_db não disponível');
+    mostrarMsgBackup('✓ Leitura OK (' + snap.size + ' usuário(s) encontrado(s)). Testando escrita...', 'success');
+    // Teste de escrita (documento temporário)
+    const { doc, setDoc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js');
+    const { collection } = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js');
+    const testRef = doc(window._db, '_teste_conexao', 'ping');
+    await setDoc(testRef, { ts: Date.now() });
+    await deleteDoc(testRef);
+    mostrarMsgBackup('✅ Firestore OK — leitura e escrita funcionando! Tente importar novamente.', 'success');
+  } catch(e) {
+    const msg = e.code ? e.code + ': ' + e.message : e.message;
+    mostrarMsgBackup('❌ Falha: ' + msg, 'danger');
+    console.error('Diagnóstico Firestore:', e);
+  }
 }
 
 </script>
