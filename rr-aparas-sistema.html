@@ -1440,6 +1440,7 @@ function gerarRelPessoal(){
   const tipo=document.getElementById('relPessoalTipo')?.value||'';
   const preview=document.getElementById('relPessoalPreview');
   const{from,to}=mesRange(mes);
+  const labelM=mesLabelFmt(mes);
   let coletas=(CACHE.coletas||[]).filter(c=>c.data>=from&&c.data<=to&&(!tipo||c.residuo===tipo)).sort((a,b)=>a.data.localeCompare(b.data));
   const calcV=c=>(c.peso||0)*(c.precoKg||0);
   const vT=coletas.reduce((s,c)=>s+calcV(c),0),pT=coletas.reduce((s,c)=>s+(c.peso||0),0);
