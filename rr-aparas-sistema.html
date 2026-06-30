@@ -486,9 +486,20 @@ tr:hover td{background:rgba(26,111,255,0.04);}
                 <option value="">Todos</option><option value="geradora">Como Geradora</option><option value="coletora">Como Coletora</option>
               </select>
             </div>
-            <div class="form-group" style="margin-bottom:0"><label>Mês de referência</label>
+            <div class="form-group" style="margin-bottom:0"><label>Tipo de Período</label>
+              <select id="relClientePeriodoTipo" onchange="toggleRelClientePeriodo()">
+                <option value="mes">Mês</option>
+                <option value="semana">Semana</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:0" id="relClienteMesWrap"><label>Mês de referência</label>
               <input type="month" id="relClienteMes" onchange="gerarRelCliente()">
             </div>
+            <div class="form-group" style="margin-bottom:0;display:none" id="relClienteSemanaWrap"><label>Semana de referência</label>
+              <input type="week" id="relClienteSemana" onchange="gerarRelCliente()">
+            </div>
+          </div>
+          <div class="form-row cols-3" style="margin-top:10px">
             <div class="form-group" style="margin-bottom:0"><label>Responsável / Assinatura</label>
               <select id="relClienteResponsavel" onchange="gerarRelCliente()">
                 <option value="">Sem assinatura</option>
@@ -1377,11 +1388,20 @@ function renderRelClienteOpts(){
 }
 function gerarRelCliente(){
   const clienteId=document.getElementById('relClienteSel').value,papel=document.getElementById('relClientePapel').value;
-  const mes=document.getElementById('relClienteMes').value||MES_REF;
+  const tipoPeriodo=document.getElementById('relClientePeriodoTipo')?document.getElementById('relClientePeriodoTipo').value:'mes';
   const preview=document.getElementById('relClientePreview');
   if(!clienteId){preview.innerHTML=`<div class="empty"><div class="empty-icon">📄</div><p>Selecione um cliente</p></div>`;return;}
   const cliente=(CACHE.clientes||[]).find(x=>x.id===clienteId);
-  const{from,to}=mesRange(mes);
+  let from, to, labelM;
+  if(tipoPeriodo==='semana'){
+    const semanaVal=document.getElementById('relClienteSemana').value;
+    const r=semanaRange(semanaVal);
+    if(!r){preview.innerHTML=`<div class="empty"><div class="empty-icon">📅</div><p>Selecione uma semana</p></div>`;return;}
+    from=r.from; to=r.to; labelM=semanaLabelFmt(semanaVal);
+  } else {
+    const mes=document.getElementById('relClienteMes').value||MES_REF;
+    const r=mesRange(mes); from=r.from; to=r.to; labelM=mesLabelFmt(mes);
+  }
   let coletas=(CACHE.coletas||[]).filter(c=>{
     if(c.data<from||c.data>to)return false;
     if(papel==='geradora')return c.geradoraId===clienteId;
@@ -1389,7 +1409,7 @@ function gerarRelCliente(){
     return c.geradoraId===clienteId||c.coletoraId===clienteId;
   }).sort((a,b)=>a.data.localeCompare(b.data));
   const totalPeso=coletas.reduce((s,c)=>s+(c.peso||0),0),conf=coletas.filter(c=>c.status==='confirmado').length;
-  const labelM=mesLabelFmt(mes),dataEmissao=new Date().toLocaleDateString('pt-BR');
+  const dataEmissao=new Date().toLocaleDateString('pt-BR');
   const wppTxt=`R&R Aparas de Papelão\nRelatório de Coleta — ${cliente.nome}\nPeríodo: ${labelM}\nTotal: ${fmtKg(totalPeso)}\nEmitido em: ${dataEmissao}`;
   preview.innerHTML=`${relAcoesHtml(wppTxt)}
     <div class="relatorio-preview">
@@ -1423,7 +1443,7 @@ function gerarRelPessoal(){
   let coletas=(CACHE.coletas||[]).filter(c=>c.data>=from&&c.data<=to&&(!tipo||c.residuo===tipo)).sort((a,b)=>a.data.localeCompare(b.data));
   const calcV=c=>(c.peso||0)*(c.precoKg||0);
   const vT=coletas.reduce((s,c)=>s+calcV(c),0),pT=coletas.reduce((s,c)=>s+(c.peso||0),0);
-  const labelM=mesLabelFmt(mes),dataEmissao=new Date().toLocaleDateString('pt-BR');
+  const dataEmissao=new Date().toLocaleDateString('pt-BR');
   // pré-selecionar mês global
   const rm=document.getElementById('relPessoalMes');if(rm&&!rm.value)rm.value=MES_REF;
   const wppTxt=`R&R Aparas de Papelão — Relatório Financeiro\nPeríodo: ${labelM}\nTotal: ${fmtBRL(vT)} | Peso: ${fmtKg(pT)}\nEmitido em: ${dataEmissao}`;
@@ -1774,6 +1794,55 @@ window.addEventListener('unhandledrejection', function(e) {
     console.error('Erro não tratado:', msg);
   }
 });
+
+
+// Alterna entre filtro de Mês e Semana no relatório do cliente
+function toggleRelClientePeriodo() {
+  var tipo = document.getElementById('relClientePeriodoTipo').value;
+  var mesWrap = document.getElementById('relClienteMesWrap');
+  var semWrap = document.getElementById('relClienteSemanaWrap');
+  if (tipo === 'semana') {
+    mesWrap.style.display = 'none';
+    semWrap.style.display = 'block';
+    // Pré-preencher semana atual se vazio
+    var semInput = document.getElementById('relClienteSemana');
+    if (!semInput.value) {
+      var now = new Date();
+      var onejan = new Date(now.getFullYear(), 0, 1);
+      var weekNum = Math.ceil((((now - onejan) / 86400000) + onejan.getDay() + 1) / 7);
+      semInput.value = now.getFullYear() + '-W' + String(weekNum).padStart(2, '0');
+    }
+  } else {
+    mesWrap.style.display = 'block';
+    semWrap.style.display = 'none';
+  }
+  gerarRelCliente();
+}
+
+// Converte input type="week" (YYYY-Www) em range de datas (segunda a domingo)
+function semanaRange(semanaStr) {
+  if (!semanaStr) return null;
+  var parts = semanaStr.split('-W');
+  var ano = parseInt(parts[0]), semana = parseInt(parts[1]);
+  // ISO 8601: semana 1 contém a primeira quinta-feira do ano
+  var simple = new Date(ano, 0, 1 + (semana - 1) * 7);
+  var dow = simple.getDay();
+  var isoWeekStart = new Date(simple);
+  if (dow <= 4) isoWeekStart.setDate(simple.getDate() - simple.getDay() + 1);
+  else isoWeekStart.setDate(simple.getDate() + 8 - simple.getDay());
+  var isoWeekEnd = new Date(isoWeekStart);
+  isoWeekEnd.setDate(isoWeekStart.getDate() + 6);
+  function fmt(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+  return { from: fmt(isoWeekStart), to: fmt(isoWeekEnd), inicio: isoWeekStart, fim: isoWeekEnd };
+}
+
+// Label legível do período semanal
+function semanaLabelFmt(semanaStr) {
+  var r = semanaRange(semanaStr);
+  if (!r) return 'Semana não definida';
+  var dd = function(d){ return String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0'); };
+  return 'Semana de ' + dd(r.inicio) + ' a ' + dd(r.fim) + '/' + r.fim.getFullYear();
+}
 
 </script>
 </body>
