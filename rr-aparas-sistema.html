@@ -726,9 +726,21 @@ tr:hover td{background:rgba(26,111,255,0.04);}
         </div>
       </div>
       <div class="section-title" style="font-size:12px;margin:12px 0 9px">Pesagem e Valor</div>
+      <div class="form-group" style="margin-bottom:10px">
+        <label>Tipo de Precificação</label>
+        <div style="display:flex;gap:6px">
+          <label style="display:flex;align-items:center;gap:6px;background:var(--bg-card2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 12px;cursor:pointer;flex:1;font-size:13px;font-weight:500;text-transform:none;letter-spacing:0;color:var(--text-secondary);transition:all 0.2s" id="lblTipoKg">
+            <input type="radio" name="cTipoPreco" id="cTipoKg" value="kg" checked onchange="toggleTipoPreco()" style="width:auto;accent-color:var(--blue-main)"> ⚖️ Valor por quilo
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;background:var(--bg-card2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 12px;cursor:pointer;flex:1;font-size:13px;font-weight:500;text-transform:none;letter-spacing:0;color:var(--text-secondary);transition:all 0.2s" id="lblTipoUnit">
+            <input type="radio" name="cTipoPreco" id="cTipoUnit" value="unitario" onchange="toggleTipoPreco()" style="width:auto;accent-color:var(--blue-main)"> 📦 Valor unitário por carga
+          </label>
+        </div>
+      </div>
       <div class="form-row cols-3">
         <div class="form-group"><label>Peso (kg)</label><input type="number" id="cPeso" placeholder="0" min="0" oninput="calcTotal()"></div>
-        <div class="form-group"><label>R$/kg</label><input type="number" id="cPrecoKg" placeholder="0,00" step="0.01" min="0" oninput="calcTotal()"></div>
+        <div class="form-group" id="cPrecoKgWrap"><label>R$/kg</label><input type="number" id="cPrecoKg" placeholder="0,00" step="0.01" min="0" oninput="calcTotal()"></div>
+        <div class="form-group" id="cPrecoUnitWrap" style="display:none"><label>Valor da carga (R$)</label><input type="number" id="cPrecoUnit" placeholder="0,00" step="0.01" min="0" oninput="calcTotal()"></div>
         <div class="form-group"><label>Total (R$)</label><input type="text" id="cTotal" placeholder="—" readonly style="background:var(--bg-card2);cursor:not-allowed"></div>
       </div>
       <div class="form-group"><label>Observações</label><textarea id="cObs" rows="2" placeholder="Observações..."></textarea></div>
@@ -754,9 +766,21 @@ tr:hover td{background:rgba(26,111,255,0.04);}
         <div class="form-group"><label>Data da Coleta *</label><input type="date" id="confData"></div>
         <div class="form-group"><label>Hora *</label><input type="time" id="confHora"></div>
       </div>
+      <div class="form-group" style="margin-bottom:10px">
+        <label>Tipo de Precificação</label>
+        <div style="display:flex;gap:6px">
+          <label style="display:flex;align-items:center;gap:6px;background:var(--bg-card2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 12px;cursor:pointer;flex:1;font-size:12px;font-weight:500;text-transform:none;letter-spacing:0;color:var(--text-secondary)" id="lblConfTipoKg">
+            <input type="radio" name="confTipoPreco" id="confTipoKg" value="kg" checked onchange="toggleConfTipoPreco()" style="width:auto;accent-color:var(--blue-main)"> ⚖️ Por quilo
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;background:var(--bg-card2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 12px;cursor:pointer;flex:1;font-size:12px;font-weight:500;text-transform:none;letter-spacing:0;color:var(--text-secondary)" id="lblConfTipoUnit">
+            <input type="radio" name="confTipoPreco" id="confTipoUnit" value="unitario" onchange="toggleConfTipoPreco()" style="width:auto;accent-color:var(--blue-main)"> 📦 Valor unitário
+          </label>
+        </div>
+      </div>
       <div class="form-row cols-2">
-        <div class="form-group"><label>Peso da Carga (kg) *</label><input type="number" id="confPeso" placeholder="0" min="0" oninput="calcConfTotal()"></div>
-        <div class="form-group"><label>R$/kg</label><input type="number" id="confPrecoKg" placeholder="0,00" step="0.01" min="0" oninput="calcConfTotal()"></div>
+        <div class="form-group"><label>Peso da Carga (kg)</label><input type="number" id="confPeso" placeholder="0" min="0" oninput="calcConfTotal()"></div>
+        <div class="form-group" id="confPrecoKgWrap"><label>R$/kg</label><input type="number" id="confPrecoKg" placeholder="0,00" step="0.01" min="0" oninput="calcConfTotal()"></div>
+        <div class="form-group" id="confPrecoUnitWrap" style="display:none"><label>Valor da carga (R$)</label><input type="number" id="confPrecoUnit" placeholder="0,00" step="0.01" min="0" oninput="calcConfTotal()"></div>
       </div>
       <div class="form-group"><label>Total (R$)</label><input type="text" id="confTotal" readonly style="background:var(--bg-card2);cursor:not-allowed;font-weight:700;font-size:15px"></div>
     </div>
@@ -969,8 +993,8 @@ function badgeStatus(s){return s==='confirmado'?`<span class="badge badge-confir
 function maskCNPJ(el){let v=el.value.replace(/\D/g,'').slice(0,14);v=v.replace(/^(\d{2})(\d)/,'$1.$2').replace(/^(\d{2})\.(\d{3})(\d)/,'$1.$2.$3').replace(/\.(\d{3})(\d)/,'.$1/$2').replace(/(\d{4})(\d)/,'$1-$2');el.value=v;}
 function maskTel(el){let v=el.value.replace(/\D/g,'').slice(0,11);if(v.length>10)v=v.replace(/^(\d{2})(\d{5})(\d{4})/,'($1) $2-$3');else v=v.replace(/^(\d{2})(\d{4})(\d)/,'($1) $2-$3');el.value=v;}
 function toggleCheck(input,parentId){document.getElementById(parentId).classList.toggle('checked',input.checked);}
-function calcTotal(){const p=parseFloat(document.getElementById('cPeso').value)||0,r=parseFloat(document.getElementById('cPrecoKg').value)||0,t=p*r;document.getElementById('cTotal').value=t>0?fmtBRL(t):'';}
-function calcConfTotal(){const p=parseFloat(document.getElementById('confPeso').value)||0,r=parseFloat(document.getElementById('confPrecoKg').value)||0,t=p*r;document.getElementById('confTotal').value=t>0?fmtBRL(t):'';}
+
+
 function abrirModal(id){document.getElementById(id).classList.add('open');}
 function fecharModal(id){document.getElementById(id).classList.remove('open');}
 
@@ -1180,7 +1204,14 @@ function popularSelectsColeta(){
 let calNovaColetaData=null;
 function abrirModalNovaColeta(id){
   popularSelectsColeta();document.getElementById('placaHint').textContent='';document.getElementById('transporteCadHint').style.display='none';
-  if(id){const c=(CACHE.coletas||[]).find(x=>x.id===id);if(!c)return;document.getElementById('modalColetaTitulo').textContent='Editar Coleta';document.getElementById('coletaEditId').value=id;document.getElementById('cData').value=c.data||'';document.getElementById('cHora').value=c.hora||'';document.getElementById('cGeradora').value=c.geradoraId||'';document.getElementById('cColetora').value=c.coletoraId||'';document.getElementById('cResiduo').value=c.residuo||'Papelão';document.getElementById('cStatus').value=c.status||'pendente';document.getElementById('cPlaca').value=c.placa||'';document.getElementById('cMotorista').value=c.motorista||'';document.getElementById('cPeso').value=c.peso||'';document.getElementById('cPrecoKg').value=c.precoKg||'';document.getElementById('cObs').value=c.obs||'';const t=(CACHE.transportes||[]).find(x=>x.placa===c.placa&&x.motorista===c.motorista);document.getElementById('cTransporteSel').value=t?t.id:'';calcTotal();}
+  if(id){const c=(CACHE.coletas||[]).find(x=>x.id===id);if(!c)return;document.getElementById('modalColetaTitulo').textContent='Editar Coleta';document.getElementById('coletaEditId').value=id;document.getElementById('cData').value=c.data||'';document.getElementById('cHora').value=c.hora||'';document.getElementById('cGeradora').value=c.geradoraId||'';document.getElementById('cColetora').value=c.coletoraId||'';document.getElementById('cResiduo').value=c.residuo||'Papelão';document.getElementById('cStatus').value=c.status||'pendente';document.getElementById('cPlaca').value=c.placa||'';document.getElementById('cMotorista').value=c.motorista||'';document.getElementById('cPeso').value=c.peso||'';
+        document.getElementById('cPrecoKg').value=c.precoKg||'';
+        document.getElementById('cPrecoUnit').value=c.precoUnit||'';
+        // Restaurar tipo de preço
+        var tipoSalvo=c.tipoPreco||'kg';
+        var radioKg=document.getElementById('cTipoKg');
+        var radioUnit=document.getElementById('cTipoUnit');
+        if(radioKg&&radioUnit){radioKg.checked=(tipoSalvo==='kg');radioUnit.checked=(tipoSalvo==='unitario');toggleTipoPreco();}document.getElementById('cObs').value=c.obs||'';const t=(CACHE.transportes||[]).find(x=>x.placa===c.placa&&x.motorista===c.motorista);document.getElementById('cTransporteSel').value=t?t.id:'';calcTotal();}
   else{document.getElementById('modalColetaTitulo').textContent='Nova Coleta';document.getElementById('coletaEditId').value='';const dataBase=calNovaColetaData||new Date().toISOString().slice(0,10);calNovaColetaData=null;document.getElementById('cData').value=dataBase;document.getElementById('cHora').value=new Date().toTimeString().slice(0,5);['cGeradora','cColetora'].forEach(x=>document.getElementById(x).value='');document.getElementById('cResiduo').value='Papelão';document.getElementById('cStatus').value='pendente';document.getElementById('cPlaca').value='';document.getElementById('cMotorista').value='';document.getElementById('cPeso').value='';document.getElementById('cPrecoKg').value='';document.getElementById('cTotal').value='';document.getElementById('cObs').value='';document.getElementById('cTransporteSel').value='';}
   abrirModal('modalColeta');
 }
@@ -1195,6 +1226,12 @@ function abrirConfirmar(id){
   document.getElementById('confHora').value=c.hora||now.toTimeString().slice(0,5);
   document.getElementById('confPeso').value=c.peso||'';
   document.getElementById('confPrecoKg').value=c.precoKg||'';
+  document.getElementById('confPrecoUnit').value=c.precoUnit||'';
+  // Restaurar tipo de preço
+  var tipoC=c.tipoPreco||'kg';
+  var rKg=document.getElementById('confTipoKg');
+  var rUnit=document.getElementById('confTipoUnit');
+  if(rKg&&rUnit){rKg.checked=(tipoC==='kg');rUnit.checked=(tipoC==='unitario');toggleConfTipoPreco();}
   document.getElementById('confTotal').value='';
   if(c.precoKg&&c.peso)document.getElementById('confTotal').value=fmtBRL(c.peso*c.precoKg);
   document.getElementById('confirmarResumo').innerHTML=`<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
@@ -1215,7 +1252,9 @@ async function executarConfirmar(){
   const precoKg=parseFloat(document.getElementById('confPrecoKg').value)||0;
   if(!data){alert('Informe a data.');return;}
   const c=(CACHE.coletas||[]).find(x=>x.id===id);if(!c)return;
-  const obj={...c,data,hora,peso,precoKg,status:'confirmado'};
+  var tipoPrecoConf=(document.querySelector('input[name="confTipoPreco"]:checked')||{value:'kg'}).value;
+  var precoUnitConf=parseFloat(document.getElementById('confPrecoUnit').value)||0;
+  const obj={...c,data,hora,peso,precoKg,tipoPreco:tipoPrecoConf,precoUnit:precoUnitConf,status:'confirmado'};
   try{await window._fsSave('coletas',obj);fecharModal('modalConfirmar');}catch(e){alert('Erro ao confirmar coleta: '+(e.message||e));}
   const[cy,cm]=data.split('-').map(Number);calAno=cy;calMes=cm-1;calDiaSel=data;
 }
@@ -1225,7 +1264,11 @@ async function salvarColeta(){
   if(!data||!geradoraId||!coletoraId){alert('Preencha data, geradora e coletora.');return;}
   const placa=document.getElementById('cPlaca').value.trim().toUpperCase(),motorista=document.getElementById('cMotorista').value.trim();
   if(placa&&motorista){const e=(CACHE.transportes||[]).find(t=>t.placa===placa&&t.motorista===motorista);if(!e)await window._fsSave('transportes',{id:uid(),placa,motorista,obs:''});}
-  const obj={id:document.getElementById('coletaEditId').value||uid(),data,hora:document.getElementById('cHora').value,geradoraId,coletoraId,residuo:document.getElementById('cResiduo').value,status:document.getElementById('cStatus').value,placa,motorista,peso:parseFloat(document.getElementById('cPeso').value)||0,precoKg:parseFloat(document.getElementById('cPrecoKg').value)||0,obs:document.getElementById('cObs').value};
+  const obj={id:document.getElementById('coletaEditId').value||uid(),data,hora:document.getElementById('cHora').value,geradoraId,coletoraId,residuo:document.getElementById('cResiduo').value,status:document.getElementById('cStatus').value,placa,motorista,peso:parseFloat(document.getElementById('cPeso').value)||0,
+    tipoPreco:(document.querySelector('input[name="cTipoPreco"]:checked')||{value:'kg'}).value,
+    precoKg:parseFloat(document.getElementById('cPrecoKg').value)||0,
+    precoUnit:parseFloat(document.getElementById('cPrecoUnit').value)||0,
+    obs:document.getElementById('cObs').value};
   try{await window._fsSave('coletas',obj);fecharModal('modalColeta');}catch(e){alert('Erro ao salvar coleta: '+(e.message||e));}
   const[cy,cm]=obj.data.split('-').map(Number);calAno=cy;calMes=cm-1;calDiaSel=obj.data;
 }
@@ -1233,7 +1276,7 @@ async function deletarColeta(id){if(!confirm('Excluir coleta?'))return;await win
 
 function verDetalheColeta(id){
   const c=(CACHE.coletas||[]).find(x=>x.id===id);if(!c)return;
-  const total=c.peso&&c.precoKg?c.peso*c.precoKg:0;
+  const total=calcValorColeta(c);
   document.getElementById('modalDetalheBody').innerHTML=`
     <div class="form-row cols-2" style="margin-bottom:10px">
       <div><div class="card-title">Data / Hora</div><div style="font-size:14px">${fmtData(c.data)} ${c.hora?'às '+c.hora:''}</div></div>
@@ -1297,7 +1340,7 @@ function abrirDetalheDia(dt,cols){
   let h='';
   if(!cols.length)h=`<div style="color:var(--text-muted);font-size:12px;text-align:center;padding:16px 0">Nenhuma coleta neste dia.</div>`;
   else cols.sort((a,b)=>a.hora.localeCompare(b.hora)).forEach(c=>{
-    const cor=cM[c.residuo]||'var(--blue-main)',total=c.peso&&c.precoKg?c.peso*c.precoKg:0;
+    const cor=cM[c.residuo]||'var(--blue-main)',total=calcValorColeta(c);
     h+=`<div class="coleta-mini">
       <div class="coleta-mini-cor" style="background:${cor}"></div>
       <div class="coleta-mini-info" onclick="verDetalheColeta('${c.id}')" style="cursor:pointer">
@@ -1326,7 +1369,7 @@ function renderDashboard(){
   const{from,to}=mesRange(MES_REF);
   const cM=coletas.filter(c=>c.data>=from&&c.data<=to);
   const pesoM=cM.reduce((s,c)=>s+(c.peso||0),0);
-  const valM=cM.reduce((s,c)=>s+(c.peso||0)*(c.precoKg||0),0);
+  const valM=cM.reduce((s,c)=>s+calcValorColeta(c),0);
   const pend=cM.filter(c=>c.status==='pendente').length;
   document.getElementById('dashStats').innerHTML=`
     <div class="stat-card"><div class="stat-icon">🚛</div><div class="stat-label">Coletas no mês</div><div class="stat-value">${cM.length}</div><div class="stat-sub">${pend} pendentes</div></div>
@@ -1442,7 +1485,7 @@ function gerarRelPessoal(){
   const{from,to}=mesRange(mes);
   const labelM=mesLabelFmt(mes);
   let coletas=(CACHE.coletas||[]).filter(c=>c.data>=from&&c.data<=to&&(!tipo||c.residuo===tipo)).sort((a,b)=>a.data.localeCompare(b.data));
-  const calcV=c=>(c.peso||0)*(c.precoKg||0);
+  const calcV=c=>calcValorColeta(c);
   const vT=coletas.reduce((s,c)=>s+calcV(c),0),pT=coletas.reduce((s,c)=>s+(c.peso||0),0);
   const dataEmissao=new Date().toLocaleDateString('pt-BR');
   // pré-selecionar mês global
@@ -1460,7 +1503,7 @@ function gerarRelPessoal(){
         <h3 style="color:#0d1a35;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;padding-bottom:4px;border-bottom:2px solid #1a6fff">Detalhamento — ${labelM}</h3>
         ${coletas.length?`<table class="relatorio-table rel-pessoal">
           <thead><tr><th>Data</th><th>Geradora</th><th>Coletora</th><th>Placa</th><th>Motorista</th><th>Resíduo</th><th>Peso kg</th><th>R$/kg</th><th>Total R$</th></tr></thead>
-          <tbody>${coletas.map(c=>`<tr><td>${fmtData(c.data)}</td><td>${nomeCliente(c.geradoraId)}</td><td>${nomeCliente(c.coletoraId)}</td><td style="font-family:monospace">${c.placa||'—'}</td><td>${c.motorista||'—'}</td><td>${c.residuo||'—'}</td><td style="font-weight:600">${c.peso?c.peso.toLocaleString('pt-BR'):'—'}</td><td>${c.precoKg?c.precoKg.toFixed(2):'—'}</td><td style="font-weight:700;color:#15803d">${calcV(c)?fmtBRL(calcV(c)):'—'}</td></tr>`).join('')}</tbody>
+          <tbody>${coletas.map(c=>`<tr><td>${fmtData(c.data)}</td><td>${nomeCliente(c.geradoraId)}</td><td>${nomeCliente(c.coletoraId)}</td><td style="font-family:monospace">${c.placa||'—'}</td><td>${c.motorista||'—'}</td><td>${c.residuo||'—'}</td><td style="font-weight:600">${c.peso?c.peso.toLocaleString('pt-BR'):'—'}</td><td>${c.tipoPreco==='unitario'?'Unitário':c.precoKg?c.precoKg.toFixed(2)+'kg':'—'}</td><td style="font-weight:700;color:#15803d">${calcV(c)?fmtBRL(calcV(c)):'—'}</td></tr>`).join('')}</tbody>
           <tfoot><tr><td colspan="6" style="text-align:right;padding-right:7px">TOTAIS</td><td>${pT.toLocaleString('pt-BR')} kg</td><td>—</td><td>${fmtBRL(vT)}</td></tr></tfoot>
         </table>`:'<p style="text-align:center;padding:20px;color:#6b7280;font-size:11px">Nenhuma coleta no período.</p>'}
         <div style="margin-top:10px;padding:7px 10px;background:#fef9e7;border:1px solid #f59e0b;border-radius:4px;font-size:9px;color:#92400e">⚠️ <strong>USO INTERNO.</strong> Não compartilhar com clientes.</div>
@@ -1843,6 +1886,99 @@ function semanaLabelFmt(semanaStr) {
   if (!r) return 'Semana não definida';
   var dd = function(d){ return String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0'); };
   return 'Semana de ' + dd(r.inicio) + ' a ' + dd(r.fim) + '/' + r.fim.getFullYear();
+}
+
+
+function toggleTipoPreco() {
+  var tipo = document.querySelector('input[name="cTipoPreco"]:checked').value;
+  var wrapKg   = document.getElementById('cPrecoKgWrap');
+  var wrapUnit = document.getElementById('cPrecoUnitWrap');
+  var lblKg    = document.getElementById('lblTipoKg');
+  var lblUnit  = document.getElementById('lblTipoUnit');
+  if (tipo === 'unitario') {
+    wrapKg.style.display   = 'none';
+    wrapUnit.style.display = 'block';
+    lblUnit.style.borderColor = 'var(--blue-main)';
+    lblUnit.style.color       = 'var(--blue-light)';
+    lblUnit.style.background  = 'var(--blue-glow)';
+    lblKg.style.borderColor   = 'var(--border)';
+    lblKg.style.color         = 'var(--text-secondary)';
+    lblKg.style.background    = 'var(--bg-card2)';
+  } else {
+    wrapKg.style.display   = 'block';
+    wrapUnit.style.display = 'none';
+    lblKg.style.borderColor  = 'var(--blue-main)';
+    lblKg.style.color        = 'var(--blue-light)';
+    lblKg.style.background   = 'var(--blue-glow)';
+    lblUnit.style.borderColor = 'var(--border)';
+    lblUnit.style.color       = 'var(--text-secondary)';
+    lblUnit.style.background  = 'var(--bg-card2)';
+  }
+  calcTotal();
+}
+
+function toggleConfTipoPreco() {
+  var tipo = document.querySelector('input[name="confTipoPreco"]:checked').value;
+  var wrapKg   = document.getElementById('confPrecoKgWrap');
+  var wrapUnit = document.getElementById('confPrecoUnitWrap');
+  var lblKg    = document.getElementById('lblConfTipoKg');
+  var lblUnit  = document.getElementById('lblConfTipoUnit');
+  if (tipo === 'unitario') {
+    wrapKg.style.display   = 'none';
+    wrapUnit.style.display = 'block';
+    lblUnit.style.borderColor = 'var(--blue-main)';
+    lblUnit.style.color       = 'var(--blue-light)';
+    lblUnit.style.background  = 'var(--blue-glow)';
+    lblKg.style.borderColor   = 'var(--border)';
+    lblKg.style.color         = 'var(--text-secondary)';
+    lblKg.style.background    = 'var(--bg-card2)';
+  } else {
+    wrapKg.style.display   = 'block';
+    wrapUnit.style.display = 'none';
+    lblKg.style.borderColor  = 'var(--blue-main)';
+    lblKg.style.color        = 'var(--blue-light)';
+    lblKg.style.background   = 'var(--blue-glow)';
+    lblUnit.style.borderColor = 'var(--border)';
+    lblUnit.style.color       = 'var(--text-secondary)';
+    lblUnit.style.background  = 'var(--bg-card2)';
+  }
+  calcConfTotal();
+}
+
+function calcTotal() {
+  var tipo = document.querySelector('input[name="cTipoPreco"]:checked');
+  tipo = tipo ? tipo.value : 'kg';
+  var p = parseFloat(document.getElementById('cPeso').value) || 0;
+  var t = 0;
+  if (tipo === 'unitario') {
+    t = parseFloat(document.getElementById('cPrecoUnit').value) || 0;
+  } else {
+    var r = parseFloat(document.getElementById('cPrecoKg').value) || 0;
+    t = p * r;
+  }
+  document.getElementById('cTotal').value = t > 0 ? fmtBRL(t) : '';
+}
+
+function calcConfTotal() {
+  var tipo = document.querySelector('input[name="confTipoPreco"]:checked');
+  tipo = tipo ? tipo.value : 'kg';
+  var p = parseFloat(document.getElementById('confPeso').value) || 0;
+  var t = 0;
+  if (tipo === 'unitario') {
+    t = parseFloat(document.getElementById('confPrecoUnit').value) || 0;
+  } else {
+    var r = parseFloat(document.getElementById('confPrecoKg').value) || 0;
+    t = p * r;
+  }
+  document.getElementById('confTotal').value = t > 0 ? fmtBRL(t) : '';
+}
+
+
+// Calcula o valor de uma coleta considerando o tipo de precificação
+function calcValorColeta(c) {
+  if (!c) return 0;
+  if (c.tipoPreco === 'unitario') return c.precoUnit || 0;
+  return (c.peso || 0) * (c.precoKg || 0);
 }
 
 </script>
