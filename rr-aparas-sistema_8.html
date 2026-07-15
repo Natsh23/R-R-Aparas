@@ -1,0 +1,1986 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0d1a35">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="R&R Aparas">
+<link rel="manifest" href="/R-R-Aparas/manifest.json">
+<link rel="apple-touch-icon" href="/R-R-Aparas/icon-192.png">
+<title>R&R Aparas — Sistema de Coleta</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-primary:#09090f;--bg-secondary:#0f0f1a;--bg-card:#13131f;--bg-card2:#1a1a2a;
+  --blue-main:#1a6fff;--blue-light:#4d9fff;--blue-glow:rgba(26,111,255,0.18);
+  --silver:#b8c8e0;--silver-light:#d8e8f8;
+  --text-primary:#e8f0ff;--text-secondary:#8899bb;--text-muted:#556688;
+  --border:rgba(26,111,255,0.15);--border-hover:rgba(26,111,255,0.4);
+  --success:#22c55e;--warning:#f59e0b;--danger:#ef4444;
+  --radius:12px;--radius-sm:8px;
+  --shadow:0 4px 24px rgba(0,0,0,0.5);--shadow-blue:0 0 24px rgba(26,111,255,0.25);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;background:var(--bg-primary);color:var(--text-primary);font-family:'Inter',sans-serif;font-size:14px;overflow:hidden;}
+
+/* LOGIN */
+.login-screen{position:fixed;inset:0;background:linear-gradient(135deg,#09090f 0%,#0d1a35 100%);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;}
+.login-screen.hidden{display:none;}
+.login-box{background:rgba(19,19,31,0.95);border:1px solid var(--border);border-radius:20px;padding:40px 32px;width:100%;max-width:360px;box-shadow:0 24px 80px rgba(0,0,0,0.8);}
+.login-logo{text-align:center;margin-bottom:24px;}
+.login-logo-icon{width:72px;height:72px;background:linear-gradient(135deg,#1a6fff,#0a3fa0);border-radius:18px;display:inline-flex;align-items:center;justify-content:center;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:26px;color:#fff;box-shadow:var(--shadow-blue);margin-bottom:12px;}
+.login-logo img{width:72px;height:72px;border-radius:18px;object-fit:cover;box-shadow:var(--shadow-blue);}
+.login-logo h1{font-family:'Rajdhani',sans-serif;font-size:22px;font-weight:700;color:var(--silver-light);}
+.login-logo p{font-size:12px;color:var(--text-muted);margin-top:2px;}
+.login-err{background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--danger);margin-bottom:14px;display:none;}
+.login-err.show{display:block;}
+
+/* APP */
+.app{display:flex;height:100vh;overflow:hidden;}
+.sidebar{width:240px;min-width:240px;background:var(--bg-secondary);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:100;transition:transform 0.3s ease;}
+.sidebar-logo{padding:16px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.logo-img{width:40px;height:40px;border-radius:10px;object-fit:cover;box-shadow:var(--shadow-blue);flex-shrink:0;}
+.logo-icon{width:40px;height:40px;background:linear-gradient(135deg,#1a6fff,#0a3fa0);border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:15px;color:#fff;box-shadow:var(--shadow-blue);flex-shrink:0;}
+.logo-text{line-height:1.2;overflow:hidden;}
+.logo-text .brand{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:16px;color:var(--silver-light);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.logo-text .sub{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;}
+.nav{flex:1;padding:10px 8px;overflow-y:auto;display:flex;flex-direction:column;gap:2px;}
+.nav-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);padding:6px 10px 3px;margin-top:6px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--radius-sm);cursor:pointer;color:var(--text-secondary);font-size:13px;font-weight:500;transition:all 0.2s;border:1px solid transparent;user-select:none;}
+.nav-item:hover{background:var(--blue-glow);color:var(--text-primary);}
+.nav-item.active{background:linear-gradient(135deg,rgba(26,111,255,0.25),rgba(26,111,255,0.1));color:var(--blue-light);border-color:var(--border-hover);box-shadow:var(--shadow-blue);}
+.nav-icon{font-size:15px;width:20px;text-align:center;flex-shrink:0;}
+.sidebar-footer{padding:10px 12px;border-top:1px solid var(--border);font-size:11px;color:var(--text-muted);}
+.sidebar-user{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+.sidebar-user-name{font-weight:600;color:var(--text-secondary);}
+.sidebar-logout{background:none;border:none;color:var(--danger);cursor:pointer;font-size:11px;padding:2px 6px;border-radius:4px;transition:background 0.2s;}
+.sidebar-logout:hover{background:rgba(239,68,68,0.1);}
+.sync-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--warning);margin-right:4px;vertical-align:middle;}
+.sync-dot.ok{background:var(--success);}
+.sync-dot.err{background:var(--danger);}
+
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.topbar{height:52px;min-height:52px;background:var(--bg-secondary);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:10px;}
+.menu-toggle{display:none;background:none;border:none;color:var(--text-primary);font-size:20px;cursor:pointer;padding:4px;}
+.topbar-title{font-family:'Rajdhani',sans-serif;font-size:19px;font-weight:700;color:var(--silver-light);flex:1;}
+.topbar-sync{font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:4px;}
+
+/* MÊS SELETOR NO TOPBAR */
+.mes-sel{display:flex;align-items:center;gap:6px;}
+.mes-sel button{background:var(--bg-card2);border:1px solid var(--border);border-radius:6px;color:var(--text-secondary);cursor:pointer;padding:4px 8px;font-size:13px;transition:all 0.15s;}
+.mes-sel button:hover{border-color:var(--border-hover);color:var(--text-primary);}
+.mes-sel-label{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;color:var(--silver-light);min-width:110px;text-align:center;}
+
+.content{flex:1;overflow-y:auto;padding:16px;}
+.page{display:none;}.page.active{display:block;}
+
+/* LOADER */
+.db-loading{position:fixed;inset:0;background:rgba(9,9,15,0.94);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
+.db-loading.hidden{display:none;}
+.spinner{width:40px;height:40px;border:3px solid rgba(26,111,255,0.2);border-top-color:var(--blue-main);border-radius:50%;animation:spin 0.8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.db-loading p{color:var(--text-secondary);font-size:14px;}
+
+/* CARDS/GRIDS */
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);}
+.card-title{font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-secondary);margin-bottom:6px;}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+.section{margin-bottom:16px;}
+.section-title{font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;color:var(--silver);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* BOTÕES */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:var(--radius-sm);border:none;cursor:pointer;font-size:13px;font-weight:600;font-family:'Inter',sans-serif;transition:all 0.2s;white-space:nowrap;user-select:none;}
+.btn-primary{background:linear-gradient(135deg,var(--blue-main),#0a3fa0);color:#fff;box-shadow:0 4px 12px rgba(26,111,255,0.3);}
+.btn-primary:hover{box-shadow:0 6px 20px rgba(26,111,255,0.5);transform:translateY(-1px);}
+.btn-secondary{background:var(--bg-card2);color:var(--text-secondary);border:1px solid var(--border);}
+.btn-secondary:hover{border-color:var(--border-hover);color:var(--text-primary);}
+.btn-danger{background:rgba(239,68,68,0.15);color:var(--danger);border:1px solid rgba(239,68,68,0.3);}
+.btn-danger:hover{background:rgba(239,68,68,0.25);}
+.btn-success{background:rgba(34,197,94,0.15);color:var(--success);border:1px solid rgba(34,197,94,0.3);}
+.btn-success:hover{background:rgba(34,197,94,0.25);}
+.btn-warning{background:rgba(245,158,11,0.15);color:var(--warning);border:1px solid rgba(245,158,11,0.3);}
+.btn-warning:hover{background:rgba(245,158,11,0.25);}
+.btn-whatsapp{background:#25D366;color:#fff;border:none;}
+.btn-whatsapp:hover{background:#1ebe59;transform:translateY(-1px);}
+.btn-sm{padding:5px 10px;font-size:12px;}
+.btn-icon{padding:6px;}
+
+/* FORMS */
+.form-group{margin-bottom:12px;}
+.form-row{display:grid;gap:10px;}
+.form-row.cols-2{grid-template-columns:1fr 1fr;}
+.form-row.cols-3{grid-template-columns:1fr 1fr 1fr;}
+label{display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:4px;}
+input,select,textarea{width:100%;background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);padding:8px 11px;font-size:13px;font-family:'Inter',sans-serif;transition:border-color 0.2s,box-shadow 0.2s;-webkit-appearance:none;appearance:none;}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue-main);box-shadow:0 0 0 3px rgba(26,111,255,0.15);}
+select{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238899bb' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;}
+
+/* TABELAS APP */
+.table-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border);}
+table{width:100%;border-collapse:collapse;}
+thead{background:var(--bg-card2);}
+th{padding:9px 12px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);white-space:nowrap;border-bottom:1px solid var(--border);}
+td{padding:9px 12px;border-bottom:1px solid var(--border);font-size:13px;color:var(--text-primary);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(26,111,255,0.04);}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;}
+.badge-papelao{background:rgba(26,111,255,0.2);color:var(--blue-light);border:1px solid rgba(26,111,255,0.3);}
+.badge-plastico{background:rgba(34,197,94,0.2);color:var(--success);border:1px solid rgba(34,197,94,0.3);}
+.badge-sucata{background:rgba(245,158,11,0.2);color:var(--warning);border:1px solid rgba(245,158,11,0.3);}
+.badge-geradora{background:rgba(139,92,246,0.2);color:#a78bfa;border:1px solid rgba(139,92,246,0.3);}
+.badge-coletora{background:rgba(20,184,166,0.2);color:#5eead4;border:1px solid rgba(20,184,166,0.3);}
+.badge-ambos{background:rgba(249,115,22,0.2);color:#fb923c;border:1px solid rgba(249,115,22,0.3);}
+.badge-pendente{background:rgba(245,158,11,0.2);color:var(--warning);border:1px solid rgba(245,158,11,0.3);}
+.badge-confirmado{background:rgba(34,197,94,0.2);color:var(--success);border:1px solid rgba(34,197,94,0.3);}
+.badge-admin{background:rgba(26,111,255,0.2);color:var(--blue-light);border:1px solid rgba(26,111,255,0.3);}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(4px);z-index:1000;display:none;align-items:center;justify-content:center;padding:16px;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);width:100%;max-width:640px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.8);}
+.modal-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg-card);z-index:1;}
+.modal-title{font-family:'Rajdhani',sans-serif;font-size:17px;font-weight:700;color:var(--silver-light);}
+.modal-body{padding:18px;}
+.modal-footer{padding:14px 18px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;}
+.close-btn{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:20px;padding:4px;line-height:1;border-radius:4px;transition:color 0.2s;}
+.close-btn:hover{color:var(--text-primary);}
+
+/* STAT CARDS */
+.stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;position:relative;overflow:hidden;}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--blue-main),transparent);}
+.stat-card.green::before{background:linear-gradient(90deg,var(--success),transparent);}
+.stat-card.yellow::before{background:linear-gradient(90deg,var(--warning),transparent);}
+.stat-card.silver::before{background:linear-gradient(90deg,var(--silver),transparent);}
+.stat-icon{font-size:20px;margin-bottom:8px;}
+.stat-label{font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:3px;}
+.stat-value{font-family:'Rajdhani',sans-serif;font-size:26px;font-weight:700;color:var(--text-primary);line-height:1;}
+.stat-sub{font-size:11px;color:var(--text-muted);margin-top:3px;}
+
+/* ALERTS/MISC */
+.alert{padding:9px 13px;border-radius:var(--radius-sm);font-size:13px;margin-bottom:12px;}
+.alert-warning{background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);color:var(--warning);}
+.alert-info{background:var(--blue-glow);border:1px solid var(--border);color:var(--blue-light);}
+.alert-success{background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);color:var(--success);}
+.alert-danger{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:var(--danger);}
+.filtros{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:flex-end;}
+.filtros .form-group{margin-bottom:0;flex:1;min-width:130px;}
+.empty{text-align:center;padding:40px 20px;color:var(--text-muted);}
+.empty-icon{font-size:40px;margin-bottom:10px;opacity:0.5;}
+.empty p{font-size:13px;}
+.checkbox-group{display:flex;flex-wrap:wrap;gap:7px;}
+.checkbox-item{display:flex;align-items:center;gap:5px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 11px;cursor:pointer;font-size:12px;font-weight:600;color:var(--text-secondary);transition:all 0.2s;user-select:none;}
+.checkbox-item input{display:none;}
+.checkbox-item.checked{background:var(--blue-glow);border-color:var(--blue-main);color:var(--blue-light);}
+
+/* TRANSPORTE */
+.transport-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.input-hint{font-size:10px;color:var(--text-muted);margin-top:2px;}
+.cad-hint{font-size:10px;color:var(--success);margin-top:2px;}
+
+/* CALENDÁRIO */
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;}
+.cal-nav{display:flex;align-items:center;gap:8px;}
+.cal-mes-ano{font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;color:var(--silver-light);min-width:160px;text-align:center;}
+.cal-nav-btn{background:var(--bg-card2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-secondary);cursor:pointer;padding:5px 11px;font-size:15px;transition:all 0.2s;}
+.cal-nav-btn:hover{border-color:var(--border-hover);color:var(--text-primary);}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.cal-dow{text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);padding:5px 0;}
+.cal-day{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);min-height:76px;padding:5px;cursor:pointer;transition:border-color 0.15s;overflow:hidden;}
+.cal-day:hover{border-color:var(--border-hover);}
+.cal-day.outro-mes{background:var(--bg-primary);opacity:0.35;}
+.cal-day.hoje{border-color:var(--blue-main);box-shadow:0 0 0 1px var(--blue-main);}
+.cal-day-num{font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:3px;line-height:1;}
+.cal-day.hoje .cal-day-num{color:var(--blue-light);font-size:12px;}
+.cal-evento{font-size:9.5px;font-weight:600;border-radius:3px;padding:2px 4px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.4;}
+.cal-evento.papelao{background:rgba(26,111,255,0.25);color:#7db6ff;}
+.cal-evento.plastico{background:rgba(34,197,94,0.25);color:#86efac;}
+.cal-evento.sucata{background:rgba(245,158,11,0.25);color:#fcd34d;}
+.cal-evento.pendente{border-left:2px solid var(--warning);}
+.cal-mais{font-size:9px;color:var(--text-muted);font-weight:600;padding:1px 3px;}
+.cal-dia-detalhe{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-top:12px;display:none;}
+.cal-dia-detalhe.open{display:block;}
+.cal-detalhe-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;}
+.cal-detalhe-titulo{font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;color:var(--silver-light);}
+.coleta-mini{background:var(--bg-card2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 11px;margin-bottom:7px;display:flex;align-items:center;gap:9px;transition:border-color 0.15s;}
+.coleta-mini:hover{border-color:var(--border-hover);}
+.coleta-mini-cor{width:4px;border-radius:2px;align-self:stretch;flex-shrink:0;}
+.coleta-mini-info{flex:1;min-width:0;}
+.coleta-mini-titulo{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.coleta-mini-sub{font-size:10px;color:var(--text-muted);margin-top:2px;}
+/* Botão confirmar inline */
+.btn-confirmar-mini{background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);color:var(--success);border-radius:6px;padding:4px 8px;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all 0.15s;font-family:'Inter',sans-serif;}
+.btn-confirmar-mini:hover{background:rgba(34,197,94,0.28);}
+.btn-editar-mini{background:var(--bg-card);border:1px solid var(--border);color:var(--text-muted);border-radius:6px;padding:4px 8px;font-size:10px;cursor:pointer;transition:all 0.15s;font-family:'Inter',sans-serif;}
+.btn-editar-mini:hover{border-color:var(--border-hover);color:var(--text-primary);}
+
+/* CONFIGURAÇÕES */
+.config-section{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:14px;}
+.config-section-title{font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;color:var(--silver);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;padding-bottom:9px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+.logo-preview-wrap{display:flex;align-items:center;gap:14px;margin-bottom:14px;}
+.logo-preview{width:68px;height:68px;border-radius:var(--radius-sm);object-fit:cover;border:2px solid var(--border);}
+.logo-placeholder{width:68px;height:68px;border-radius:var(--radius-sm);border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:26px;}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:99;}
+.residuo-bar{margin-bottom:10px;}
+.residuo-bar-label{display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;}
+.residuo-bar-track{height:5px;background:var(--bg-card2);border-radius:3px;overflow:hidden;}
+.residuo-bar-fill{height:100%;border-radius:3px;transition:width 0.5s ease;}
+
+/* ═══════════════════════════
+   RELATÓRIO — A4 RETRATO
+═══════════════════════════ */
+.relatorio-preview{background:#fff;color:#111;border-radius:var(--radius);overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,0.5);}
+.relatorio-header-print{background:#0d1a35;color:#fff;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;}
+.relatorio-body{padding:14px 20px;background:#fff;color:#111;}
+.relatorio-table{width:100%;border-collapse:collapse;font-size:8.5px;table-layout:fixed;}
+.relatorio-table th{background:#0d1a35;color:#fff;padding:5px 6px;text-align:left;font-size:8px;letter-spacing:0.3px;text-transform:uppercase;border:1px solid #1a3a6b;word-break:break-word;}
+.relatorio-table td{padding:4px 6px;color:#222;border:1px solid #c0d0e0;word-break:break-word;vertical-align:top;font-size:8.5px;}
+.relatorio-table tr:nth-child(even) td{background:#f4f8ff;}
+.relatorio-table tfoot td{background:#0d1a35;color:#fff;font-weight:700;border:1px solid #1a3a6b;padding:5px 6px;font-size:8.5px;}
+.relatorio-table.rel-cliente th:nth-child(1),.relatorio-table.rel-cliente td:nth-child(1){width:10%;}
+.relatorio-table.rel-cliente th:nth-child(2),.relatorio-table.rel-cliente td:nth-child(2){width:22%;}
+.relatorio-table.rel-cliente th:nth-child(3),.relatorio-table.rel-cliente td:nth-child(3){width:22%;}
+.relatorio-table.rel-cliente th:nth-child(4),.relatorio-table.rel-cliente td:nth-child(4){width:13%;}
+.relatorio-table.rel-cliente th:nth-child(5),.relatorio-table.rel-cliente td:nth-child(5){width:20%;}
+.relatorio-table.rel-cliente th:nth-child(6),.relatorio-table.rel-cliente td:nth-child(6){width:13%;}
+.relatorio-table.rel-pessoal th:nth-child(1),.relatorio-table.rel-pessoal td:nth-child(1){width:9%;}
+.relatorio-table.rel-pessoal th:nth-child(2),.relatorio-table.rel-pessoal td:nth-child(2){width:15%;}
+.relatorio-table.rel-pessoal th:nth-child(3),.relatorio-table.rel-pessoal td:nth-child(3){width:14%;}
+.relatorio-table.rel-pessoal th:nth-child(4),.relatorio-table.rel-pessoal td:nth-child(4){width:11%;}
+.relatorio-table.rel-pessoal th:nth-child(5),.relatorio-table.rel-pessoal td:nth-child(5){width:13%;}
+.relatorio-table.rel-pessoal th:nth-child(6),.relatorio-table.rel-pessoal td:nth-child(6){width:9%;}
+.relatorio-table.rel-pessoal th:nth-child(7),.relatorio-table.rel-pessoal td:nth-child(7){width:10%;}
+.relatorio-table.rel-pessoal th:nth-child(8),.relatorio-table.rel-pessoal td:nth-child(8){width:8%;}
+.relatorio-table.rel-pessoal th:nth-child(9),.relatorio-table.rel-pessoal td:nth-child(9){width:11%;}
+.rel-info-table{width:100%;border-collapse:collapse;margin-bottom:10px;font-size:9px;border:1px solid #c0d0e0;}
+.rel-info-table td{padding:5px 9px;border:1px solid #c0d0e0;}
+.rel-info-table td.lbl{background:#eef4ff;font-weight:600;color:#1a3a6b;width:28%;}
+.rel-acoes{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+
+@media print{
+  @page{size:A4 portrait;margin:8mm 10mm;}
+  .app,.login-screen,.db-loading{display:block!important;}
+  .sidebar,.topbar,.no-print,.db-loading,.login-screen{display:none!important;}
+  .content{padding:0;overflow:visible;}
+  .relatorio-preview{box-shadow:none;border-radius:0;}
+  body{background:#fff;overflow:visible;}
+  html,body{height:auto;overflow:visible;}
+  .page.active{display:block;}
+  .relatorio-table{font-size:7.5px;}
+  .relatorio-table th{font-size:7px;padding:4px 5px;}
+  .relatorio-table td{padding:3px 5px;}
+  .relatorio-header-print{padding:10px 14px;}
+  .relatorio-body{padding:10px 14px;}
+}
+
+/* RESPONSIVE */
+@media(max-width:900px){.cal-day{min-height:58px;}.cal-evento{display:none;}.cal-day.tem-coleta .cal-day-num::after{content:' •';color:var(--blue-light);}}
+@media(max-width:768px){
+  .sidebar{position:fixed;top:0;left:0;bottom:0;transform:translateX(-100%);z-index:200;}
+  .sidebar.open{transform:translateX(0);}
+  .sidebar-overlay.open{display:block;}
+  .menu-toggle{display:flex;align-items:center;}
+  .main{width:100%;}
+  .content{padding:10px;}
+  .grid-4{grid-template-columns:repeat(2,1fr);}
+  .grid-3{grid-template-columns:repeat(2,1fr);}
+  .grid-2{grid-template-columns:1fr;}
+  .form-row.cols-2,.form-row.cols-3,.transport-row{grid-template-columns:1fr;}
+  .filtros .form-group{min-width:100%;}
+  .stat-value{font-size:22px;}
+  .modal{max-width:100%;margin:0;border-radius:var(--radius) var(--radius) 0 0;}
+  .modal-overlay{align-items:flex-end;padding:0;}
+  .cal-day{min-height:42px;padding:4px;}
+  .cal-grid{gap:2px;}
+  .relatorio-header-print{flex-direction:column;gap:8px;}
+  .mes-sel-label{min-width:90px;font-size:12px;}
+}
+@media(max-width:420px){
+  .grid-4{grid-template-columns:1fr 1fr;}
+  .grid-3{grid-template-columns:1fr;}
+  .cal-mes-ano{font-size:15px;min-width:130px;}
+}
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(26,111,255,0.3);border-radius:3px;}
+.pulse{animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+
+  /* ASSINATURAS */
+  .assin-card{background:var(--bg-card2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;margin-bottom:10px;display:flex;align-items:center;gap:12px;}
+  .assin-img{width:120px;height:48px;object-fit:contain;background:#fff;border-radius:4px;border:1px solid #ddd;padding:2px;}
+  .assin-img-placeholder{width:120px;height:48px;background:var(--bg-secondary);border:1px dashed var(--border);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--text-muted);}
+  .assin-info{flex:1;min-width:0;}
+  .assin-nome{font-size:13px;font-weight:600;color:var(--text-primary);}
+  .assin-sub{font-size:11px;color:var(--text-muted);margin-top:2px;}
+  #assinCanvas{background:#fff;border:2px solid var(--border);border-radius:var(--radius-sm);touch-action:none;cursor:crosshair;display:block;width:100%;}
+  .canvas-toolbar{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;align-items:center;}
+</style>
+</head>
+<body>
+
+<!-- TELA DE LOGIN -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div id="loginLogoArea"><div class="login-logo-icon">R&R</div></div>
+      <h1 id="loginNomeEmpresa">R&R Aparas de Papelão</h1>
+      <p>Sistema de Gestão de Coleta</p>
+    </div>
+    <div class="login-err" id="loginErr">Usuário ou senha incorretos.</div>
+    <div class="form-group"><label>Usuário</label><input type="text" id="loginUser" placeholder="Digite seu usuário" autocomplete="username"></div>
+    <div class="form-group"><label>Senha</label><input type="password" id="loginPass" placeholder="Digite sua senha" autocomplete="current-password" onkeydown="if(event.key==='Enter')fazerLogin()"></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px" onclick="fazerLogin()">Entrar</button>
+  </div>
+</div>
+
+<!-- LOADER -->
+<div class="db-loading" id="dbLoader">
+  <div class="spinner"></div>
+  <p id="loaderMsg">Conectando ao Firebase...</p>
+</div>
+
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div id="logoArea" class="logo-icon">R&R</div>
+      <div class="logo-text">
+        <div class="brand" id="brandName">R&R Aparas</div>
+        <div class="sub">Sistema de Coleta</div>
+      </div>
+    </div>
+    <nav class="nav">
+      <div class="nav-label">Principal</div>
+      <div class="nav-item active" onclick="goTo('dashboard',this)"><span class="nav-icon">📊</span> Dashboard</div>
+      <div class="nav-label">Operações</div>
+      <div class="nav-item" onclick="goTo('coletas',this)"><span class="nav-icon">🚛</span> Coletas</div>
+      <div class="nav-item" onclick="goTo('clientes',this)"><span class="nav-icon">🏢</span> Clientes</div>
+      <div class="nav-item" onclick="goTo('transportes',this)"><span class="nav-icon">🚚</span> Caminhões</div>
+      <div class="nav-label">Relatórios</div>
+      <div class="nav-item" onclick="goTo('relatorio-cliente',this)"><span class="nav-icon">📄</span> Rel. Cliente</div>
+      <div class="nav-item" onclick="goTo('relatorio-pessoal',this)"><span class="nav-icon">💰</span> Rel. Pessoal</div>
+      <div class="nav-label">Sistema</div>
+      <div class="nav-item" onclick="goTo('configuracoes',this)"><span class="nav-icon">⚙️</span> Configurações</div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <span class="sidebar-user-name" id="sidebarUserName">—</span>
+        <button class="sidebar-logout" onclick="fazerLogout()">Sair</button>
+      </div>
+      <div><span class="sync-dot" id="syncDot"></span><span id="syncStatus">Conectando...</span></div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+      <div class="topbar-title" id="pageTitle">Dashboard</div>
+      <!-- Seletor de mês global -->
+      <div class="mes-sel no-print" id="mesSel">
+        <button class="cal-nav-btn" onclick="mesMover(-1)">‹</button>
+        <div class="mes-sel-label" id="mesSelLabel">—</div>
+        <button class="cal-nav-btn" onclick="mesMover(1)">›</button>
+      </div>
+      <div class="topbar-sync no-print" id="topbarSync"></div>
+    </div>
+
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <div id="page-dashboard" class="page active">
+        <div class="section"><div class="grid-4" id="dashStats"></div></div>
+        <div class="grid-2" style="margin-bottom:16px">
+          <div><div class="section-title">📦 Por Tipo de Resíduo</div><div class="card" id="dashResiduos"></div></div>
+          <div><div class="section-title">🏢 Empresas</div><div class="card" id="dashEmpresas"></div></div>
+        </div>
+        <div class="section">
+          <div class="section-title">🕐 Últimas Coletas do Mês</div>
+          <div class="table-wrap">
+            <table><thead><tr><th>Data</th><th>Geradora</th><th>Coletora</th><th>Motorista</th><th>Peso</th><th>Status</th></tr></thead>
+            <tbody id="dashUltimas"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- COLETAS -->
+      <div id="page-coletas" class="page">
+        <div class="cal-header no-print">
+          <div class="cal-nav">
+            <button class="cal-nav-btn" onclick="calNavMes(-1)">‹</button>
+            <div class="cal-mes-ano" id="calMesAno">—</div>
+            <button class="cal-nav-btn" onclick="calNavMes(1)">›</button>
+          </div>
+          <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">
+            <button class="btn btn-secondary btn-sm" onclick="calHoje()">Hoje</button>
+            <select id="filtroTipoColeta" onchange="renderCalendario()" style="width:auto;font-size:12px;padding:5px 26px 5px 9px">
+              <option value="">Todos</option><option value="Papelão">Papelão</option>
+              <option value="Plástico">Plástico</option><option value="Sucata">Sucata</option>
+            </select>
+            <button class="btn btn-primary btn-sm" onclick="abrirModalNovaColeta()">+ Nova Coleta</button>
+          </div>
+        </div>
+        <div class="cal-grid" style="margin-bottom:3px">
+          <div class="cal-dow">Dom</div><div class="cal-dow">Seg</div><div class="cal-dow">Ter</div>
+          <div class="cal-dow">Qua</div><div class="cal-dow">Qui</div><div class="cal-dow">Sex</div><div class="cal-dow">Sáb</div>
+        </div>
+        <div class="cal-grid" id="calDias"></div>
+        <div class="cal-dia-detalhe" id="calDiaDetalhe">
+          <div class="cal-detalhe-header">
+            <div class="cal-detalhe-titulo" id="calDetalheData">—</div>
+            <div style="display:flex;gap:7px">
+              <button class="btn btn-primary btn-sm" onclick="abrirModalNovaColetaData()">+ Coleta</button>
+              <button class="btn btn-secondary btn-sm btn-icon" onclick="fecharDetalhe()">✕</button>
+            </div>
+          </div>
+          <div id="calDetalheList"></div>
+        </div>
+      </div>
+
+      <!-- CLIENTES -->
+      <div id="page-clientes" class="page">
+        <div class="filtros no-print">
+          <div class="form-group"><label>Buscar</label><input type="search" id="buscaCliente" placeholder="Nome, CNPJ..." oninput="renderClientes()"></div>
+          <div class="form-group"><label>Tipo</label>
+            <select id="filtroTipoCliente" onchange="renderClientes()">
+              <option value="">Todos</option><option value="geradora">Geradora</option>
+              <option value="coletora">Coletora</option><option value="ambos">Geradora e Coletora</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:8px;align-items:flex-end"><button class="btn btn-primary" onclick="abrirModalCliente()">+ Novo Cliente</button></div>
+        </div>
+        <div class="table-wrap">
+          <table><thead><tr><th>Empresa</th><th>CNPJ</th><th>Telefone</th><th>Tipo</th><th>Resíduo</th><th>Ações</th></tr></thead>
+          <tbody id="clientesTbody"></tbody></table>
+        </div>
+      </div>
+
+      <!-- CAMINHÕES -->
+      <div id="page-transportes" class="page">
+        <div class="filtros no-print">
+          <div class="form-group"><label>Buscar</label><input type="search" id="buscaTransporte" placeholder="Placa ou motorista..." oninput="renderTransportes()"></div>
+          <div style="display:flex;gap:8px;align-items:flex-end"><button class="btn btn-primary" onclick="abrirModalTransporte()">+ Novo</button></div>
+        </div>
+        <div class="table-wrap">
+          <table><thead><tr><th>Placa</th><th>Motorista</th><th>Coletas</th><th>Última coleta</th><th>Ações</th></tr></thead>
+          <tbody id="transportesTbody"></tbody></table>
+        </div>
+      </div>
+
+      <!-- RELATÓRIO CLIENTE -->
+      <div id="page-relatorio-cliente" class="page">
+        <div class="card no-print" style="margin-bottom:16px">
+          <div class="form-row cols-3">
+            <div class="form-group" style="margin-bottom:0"><label>Cliente</label>
+              <select id="relClienteSel" onchange="gerarRelCliente()"><option value="">Selecione...</option></select>
+            </div>
+            <div class="form-group" style="margin-bottom:0"><label>Papel</label>
+              <select id="relClientePapel" onchange="gerarRelCliente()">
+                <option value="">Todos</option><option value="geradora">Como Geradora</option><option value="coletora">Como Coletora</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:0"><label>Tipo de Período</label>
+              <select id="relClientePeriodoTipo" onchange="toggleRelClientePeriodo()">
+                <option value="mes">Mês</option>
+                <option value="semana">Semana</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:0" id="relClienteMesWrap"><label>Mês de referência</label>
+              <input type="month" id="relClienteMes" onchange="gerarRelCliente()">
+            </div>
+            <div class="form-group" style="margin-bottom:0;display:none" id="relClienteSemanaWrap"><label>Semana de referência</label>
+              <input type="week" id="relClienteSemana" onchange="gerarRelCliente()">
+            </div>
+          </div>
+          <div class="form-row cols-3" style="margin-top:10px">
+            <div class="form-group" style="margin-bottom:0"><label>Responsável / Assinatura</label>
+              <select id="relClienteResponsavel" onchange="gerarRelCliente()">
+                <option value="">Sem assinatura</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;margin-top:10px">
+            <button class="btn btn-primary btn-sm" onclick="window.print()">🖨️ Imprimir / PDF</button>
+          </div>
+        </div>
+        <div id="relClientePreview"></div>
+      </div>
+
+      <!-- RELATÓRIO PESSOAL -->
+      <div id="page-relatorio-pessoal" class="page">
+        <div class="card no-print" style="margin-bottom:16px">
+          <div class="form-row cols-3">
+            <div class="form-group" style="margin-bottom:0"><label>Mês de referência</label>
+              <input type="month" id="relPessoalMes" onchange="gerarRelPessoal()">
+            </div>
+            <div class="form-group" style="margin-bottom:0"><label>Tipo de resíduo</label>
+              <select id="relPessoalTipo" onchange="gerarRelPessoal()">
+                <option value="">Todos</option><option value="Papelão">Papelão</option>
+                <option value="Plástico">Plástico</option><option value="Sucata">Sucata</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:0"><label>Responsável / Assinatura</label>
+              <select id="relPessoalResponsavel" onchange="gerarRelPessoal()">
+                <option value="">Sem assinatura</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;margin-top:10px">
+            <button class="btn btn-primary btn-sm" onclick="window.print()">🖨️ Imprimir / PDF</button>
+          </div>
+        </div>
+        <div id="relPessoalPreview"></div>
+      </div>
+
+      <!-- CONFIGURAÇÕES -->
+      <div id="page-configuracoes" class="page">
+        <div class="config-section">
+          <div class="config-section-title">🖼️ Identidade Visual</div>
+          <div class="logo-preview-wrap">
+            <div id="cfgLogoPreviewWrap">
+              <div class="logo-placeholder" id="cfgLogoPlaceholder">🏢</div>
+              <img id="cfgLogoPreview" class="logo-preview" style="display:none" src="" alt="Logo">
+            </div>
+            <div>
+              <p style="font-size:12px;color:var(--text-secondary);margin-bottom:9px">Logo da empresa — aparece na sidebar, tela de login e relatórios.</p>
+              <div style="display:flex;gap:7px;flex-wrap:wrap">
+                <button class="btn btn-primary btn-sm" onclick="document.getElementById('logoFileInput').click()">📁 Imagem</button>
+                <button class="btn btn-danger btn-sm" onclick="removerLogo()" id="btnRemoverLogo" style="display:none">🗑️ Remover</button>
+              </div>
+              <input type="file" id="logoFileInput" accept="image/*" style="display:none" onchange="uploadLogo(this)">
+              <p style="font-size:10px;color:var(--text-muted);margin-top:7px">PNG/JPG/WEBP — máx. 2MB</p>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Nome da empresa</label>
+            <div style="display:flex;gap:8px">
+              <input type="text" id="cfgNomeEmpresa" placeholder="Ex: R&R Aparas" style="flex:1">
+              <button class="btn btn-primary btn-sm" onclick="salvarNomeEmpresa()">Salvar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- USUÁRIOS -->
+        <!-- ASSINATURAS -->
+        <div class="config-section">
+          <div class="config-section-title">✍️ Responsáveis e Assinaturas</div>
+          <p style="font-size:12px;color:var(--text-secondary);margin-bottom:12px">Cadastre responsáveis e suas assinaturas. Serão exibidas nos relatórios.</p>
+          <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+            <button class="btn btn-primary btn-sm" onclick="abrirModalAssinatura()">+ Novo Responsável</button>
+          </div>
+          <div id="assinaturasList"></div>
+        </div>
+
+        <div class="config-section">
+          <div class="config-section-title">👤 Usuários e Acesso</div>
+          <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+            <button class="btn btn-primary btn-sm" onclick="abrirModalUsuario()">+ Novo Usuário</button>
+          </div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Usuário</th><th>Papel</th><th>Criado em</th><th>Ações</th></tr></thead>
+            <tbody id="usuariosTbody"></tbody>
+          </table></div>
+        </div>
+
+        <div class="config-section">
+          <div class="config-section-title">☁️ Firebase — Conexão</div>
+          <div id="cfgFirebaseStatus"></div>
+        </div>
+        <div class="config-section">
+          <div class="config-section-title">💾 Backup Local</div>
+          <div class="grid-2">
+            <div><p style="font-size:12px;color:var(--text-secondary);margin-bottom:10px">Exportar cópia local como <code style="font-size:11px;background:var(--bg-card2);padding:2px 5px;border-radius:4px">.json</code></p>
+              <button class="btn btn-success btn-sm" onclick="exportarBackup()">⬇️ Exportar</button>
+            </div>
+            <div><p style="font-size:12px;color:var(--text-secondary);margin-bottom:10px"><strong style="color:var(--warning)">Atenção:</strong> substituirá dados no Firestore.</p>
+              <button class="btn btn-warning btn-sm" onclick="document.getElementById('importFileInput').click()">⬆️ Importar</button>
+              <input type="file" id="importFileInput" accept=".json" style="display:none" onchange="importarBackup(this)">
+            </div>
+          </div>
+          <div id="backupMsg" style="margin-top:12px"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODAL USUÁRIO -->
+<div class="modal-overlay" id="modalUsuario">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <div class="modal-title" id="modalUsuarioTitulo">Novo Usuário</div>
+      <button class="close-btn" onclick="fecharModal('modalUsuario')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="usuarioEditId">
+      <div class="form-group"><label>Usuário (login) *</label><input type="text" id="uUsername" placeholder="Ex: joao" autocomplete="off"></div>
+      <div class="form-group"><label>Senha *</label><input type="password" id="uSenha" placeholder="Digite a senha" autocomplete="new-password"></div>
+      <div class="form-group"><label>Confirmar senha *</label><input type="password" id="uSenha2" placeholder="Repita a senha" autocomplete="new-password"></div>
+      <div class="form-group"><label>Papel</label>
+        <select id="uPapel"><option value="admin">Administrador</option><option value="operador">Operador</option></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="fecharModal('modalUsuario')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarUsuario()">💾 Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CLIENTE -->
+<div class="modal-overlay" id="modalCliente">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalClienteTitulo">Novo Cliente</div>
+      <button class="close-btn" onclick="fecharModal('modalCliente')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="clienteEditId">
+      <div class="section-title" style="font-size:12px;margin-bottom:10px">Identificação</div>
+      <div class="form-row cols-2">
+        <div class="form-group"><label>Nome / Razão Social *</label><input type="text" id="cNome" placeholder="Ex: APARIX"></div>
+        <div class="form-group"><label>CNPJ</label><input type="text" id="cCNPJ" placeholder="00.000.000/0000-00" oninput="maskCNPJ(this)"></div>
+      </div>
+      <div class="form-row cols-2">
+        <div class="form-group"><label>Telefone</label><input type="text" id="cTelefone" placeholder="(11) 99999-9999" oninput="maskTel(this)"></div>
+        <div class="form-group"><label>E-mail</label><input type="email" id="cEmail" placeholder="contato@empresa.com"></div>
+      </div>
+      <div class="form-group"><label>Endereço</label><input type="text" id="cEndereco" placeholder="Rua, número, cidade - UF"></div>
+      <div class="section-title" style="font-size:12px;margin:12px 0 10px">Classificação</div>
+      <div class="form-row cols-2">
+        <div class="form-group"><label>Tipo *</label>
+          <select id="cTipo"><option value="geradora">Geradora</option><option value="coletora">Coletora</option><option value="ambos">Geradora e Coletora</option></select>
+        </div>
+        <div class="form-group"><label>Resíduo(s) *</label>
+          <div class="checkbox-group">
+            <label class="checkbox-item" id="cbPapelao"><input type="checkbox" value="Papelão" onchange="toggleCheck(this,'cbPapelao')"> 📦 Papelão</label>
+            <label class="checkbox-item" id="cbPlastico"><input type="checkbox" value="Plástico" onchange="toggleCheck(this,'cbPlastico')"> 🧴 Plástico</label>
+            <label class="checkbox-item" id="cbSucata"><input type="checkbox" value="Sucata" onchange="toggleCheck(this,'cbSucata')"> ⚙️ Sucata</label>
+          </div>
+        </div>
+      </div>
+      <div class="section-title" style="font-size:12px;margin:12px 0 10px">Dados Bancários</div>
+      <div class="form-row cols-2">
+        <div class="form-group"><label>Banco</label><input type="text" id="cBanco" placeholder="Ex: Itaú"></div>
+        <div class="form-group"><label>Agência / Conta</label><input type="text" id="cAgConta" placeholder="0000 / 00000-0"></div>
+      </div>
+      <div class="form-group"><label>PIX</label><input type="text" id="cPix" placeholder="CNPJ, CPF, e-mail ou chave aleatória"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="fecharModal('modalCliente')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarCliente()">💾 Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL COLETA -->
+<div class="modal-overlay" id="modalColeta">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalColetaTitulo">Registrar Coleta</div>
+      <button class="close-btn" onclick="fecharModal('modalColeta')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="coletaEditId">
+      <div class="alert alert-info" style="margin-bottom:12px">📋 Peso pode ser inserido agora ou ao confirmar depois.</div>
+      <div class="form-row cols-2">
+        <div class="form-group"><label>Data *</label><input type="date" id="cData"></div>
+        <div class="form-group"><label>Hora</label><input type="time" id="cHora"></div>
+      </div>
+      <div class="form-row cols-2">
+        <div class="form-group"><label>Empresa Geradora *</label><select id="cGeradora"><option value="">Selecione...</option></select></div>
+        <div class="form-group"><label>Empresa Coletora *</label><select id="cColetora"><option value="">Selecione...</option></select></div>
+      </div>
+      <div class="form-row cols-2">
+        <div class="form-group"><label>Resíduo *</label>
+          <select id="cResiduo"><option value="Papelão">📦 Papelão</option><option value="Plástico">🧴 Plástico</option><option value="Sucata">⚙️ Sucata</option></select>
+        </div>
+        <div class="form-group"><label>Status</label>
+          <select id="cStatus"><option value="pendente">⏳ Pendente</option><option value="confirmado">✅ Confirmada</option></select>
+        </div>
+      </div>
+      <div class="section-title" style="font-size:12px;margin:12px 0 9px">🚚 Transporte</div>
+      <div class="form-group">
+        <label>Caminhão cadastrado</label>
+        <select id="cTransporteSel" onchange="preencherTransporteSel()"><option value="">— Manual —</option></select>
+      </div>
+      <div class="transport-row">
+        <div class="form-group" style="margin-bottom:5px">
+          <label>Placa</label>
+          <input type="text" id="cPlaca" placeholder="ABC-1234" oninput="this.value=this.value.toUpperCase();verificarTransporte()">
+          <div class="input-hint" id="placaHint"></div>
+        </div>
+        <div class="form-group" style="margin-bottom:5px">
+          <label>Motorista</label>
+          <input type="text" id="cMotorista" placeholder="Nome do motorista" list="motoristasDatalist" oninput="verificarTransporte()">
+          <datalist id="motoristasDatalist"></datalist>
+          <div class="cad-hint" id="transporteCadHint" style="display:none">✓ Será cadastrado automaticamente</div>
+        </div>
+      </div>
+      <div class="section-title" style="font-size:12px;margin:12px 0 9px">Pesagem e Valor</div>
+      <div class="form-group" style="margin-bottom:10px">
+        <label>Tipo de Precificação</label>
+        <div style="display:flex;gap:6px">
+          <label style="display:flex;align-items:center;gap:6px;background:var(--bg-card2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 12px;cursor:pointer;flex:1;font-size:13px;font-weight:500;text-transform:none;letter-spacing:0;color:var(--text-secondary);transition:all 0.2s" id="lblTipoKg">
+            <input type="radio" name="cTipoPreco" id="cTipoKg" value="kg" checked onchange="toggleTipoPreco()" style="width:auto;accent-color:var(--blue-main)"> ⚖️ Valor por quilo
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;background:var(--bg-card2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 12px;cursor:pointer;flex:1;font-size:13px;font-weight:500;text-transform:none;letter-spacing:0;color:var(--text-secondary);transition:all 0.2s" id="lblTipoUnit">
+            <input type="radio" name="cTipoPreco" id="cTipoUnit" value="unitario" onchange="toggleTipoPreco()" style="width:auto;accent-color:var(--blue-main)"> 📦 Valor unitário por carga
+          </label>
+        </div>
+      </div>
+      <div class="form-row cols-3">
+        <div class="form-group"><label>Peso (kg)</label><input type="number" id="cPeso" placeholder="0" min="0" oninput="calcTotal()"></div>
+        <div class="form-group" id="cPrecoKgWrap"><label>R$/kg</label><input type="number" id="cPrecoKg" placeholder="0,00" step="0.01" min="0" oninput="calcTotal()"></div>
+        <div class="form-group" id="cPrecoUnitWrap" style="display:none"><label>Valor da carga (R$)</label><input type="number" id="cPrecoUnit" placeholder="0,00" step="0.01" min="0" oninput="calcTotal()"></div>
+        <div class="form-group"><label>Total (R$)</label><input type="text" id="cTotal" placeholder="—" readonly style="background:var(--bg-card2);cursor:not-allowed"></div>
+      </div>
+      <div class="form-group"><label>Observações</label><textarea id="cObs" rows="2" placeholder="Observações..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="fecharModal('modalColeta')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarColeta()">💾 Salvar Coleta</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONFIRMAR COLETA (rápido) -->
+<div class="modal-overlay" id="modalConfirmar">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <div class="modal-title">✅ Confirmar Coleta</div>
+      <button class="close-btn" onclick="fecharModal('modalConfirmar')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="confirmarColetaId">
+      <div id="confirmarResumo" style="background:var(--bg-card2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:14px;font-size:13px;"></div>
+      <div class="form-row cols-2">
+        <div class="form-group"><label>Data da Coleta *</label><input type="date" id="confData"></div>
+        <div class="form-group"><label>Hora *</label><input type="time" id="confHora"></div>
+      </div>
+      <div class="form-group" style="margin-bottom:10px">
+        <label>Tipo de Precificação</label>
+        <div style="display:flex;gap:6px">
+          <label style="display:flex;align-items:center;gap:6px;background:var(--bg-card2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 12px;cursor:pointer;flex:1;font-size:12px;font-weight:500;text-transform:none;letter-spacing:0;color:var(--text-secondary)" id="lblConfTipoKg">
+            <input type="radio" name="confTipoPreco" id="confTipoKg" value="kg" checked onchange="toggleConfTipoPreco()" style="width:auto;accent-color:var(--blue-main)"> ⚖️ Por quilo
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;background:var(--bg-card2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 12px;cursor:pointer;flex:1;font-size:12px;font-weight:500;text-transform:none;letter-spacing:0;color:var(--text-secondary)" id="lblConfTipoUnit">
+            <input type="radio" name="confTipoPreco" id="confTipoUnit" value="unitario" onchange="toggleConfTipoPreco()" style="width:auto;accent-color:var(--blue-main)"> 📦 Valor unitário
+          </label>
+        </div>
+      </div>
+      <div class="form-row cols-2">
+        <div class="form-group"><label>Peso da Carga (kg)</label><input type="number" id="confPeso" placeholder="0" min="0" oninput="calcConfTotal()"></div>
+        <div class="form-group" id="confPrecoKgWrap"><label>R$/kg</label><input type="number" id="confPrecoKg" placeholder="0,00" step="0.01" min="0" oninput="calcConfTotal()"></div>
+        <div class="form-group" id="confPrecoUnitWrap" style="display:none"><label>Valor da carga (R$)</label><input type="number" id="confPrecoUnit" placeholder="0,00" step="0.01" min="0" oninput="calcConfTotal()"></div>
+      </div>
+      <div class="form-group"><label>Total (R$)</label><input type="text" id="confTotal" readonly style="background:var(--bg-card2);cursor:not-allowed;font-weight:700;font-size:15px"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="fecharModal('modalConfirmar')">Cancelar</button>
+      <button class="btn btn-success" onclick="executarConfirmar()">✅ Confirmar e Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CAMINHÃO -->
+<div class="modal-overlay" id="modalTransporte">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTransporteTitulo">Novo Caminhão</div>
+      <button class="close-btn" onclick="fecharModal('modalTransporte')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="transpEditId">
+      <div class="form-group"><label>Placa *</label><input type="text" id="tPlaca" placeholder="ABC-1D23" oninput="this.value=this.value.toUpperCase()"></div>
+      <div class="form-group"><label>Motorista *</label><input type="text" id="tMotorista" placeholder="Nome completo"></div>
+      <div class="form-group"><label>Observações</label><textarea id="tObs" rows="2" placeholder="Empresa coletora, etc..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="fecharModal('modalTransporte')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarTransporte()">💾 Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DETALHE COLETA -->
+<div class="modal-overlay" id="modalDetalhe">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Detalhes da Coleta</div>
+      <button class="close-btn" onclick="fecharModal('modalDetalhe')">✕</button>
+    </div>
+    <div class="modal-body" id="modalDetalheBody"></div>
+    <div class="modal-footer" id="modalDetalheFooter"></div>
+  </div>
+</div>
+
+
+<!-- MODAL ASSINATURA -->
+<div class="modal-overlay" id="modalAssinatura">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header">
+      <div class="modal-title" id="modalAssinaturaTitulo">Novo Responsável</div>
+      <button class="close-btn" onclick="fecharModal('modalAssinatura')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="assinEditId">
+      <div class="form-group"><label>Nome do Responsável *</label><input type="text" id="assinNome" placeholder="Ex: João Silva"></div>
+      <div class="form-group"><label>Cargo / Função</label><input type="text" id="assinCargo" placeholder="Ex: Gerente de Operações"></div>
+      <div class="form-group">
+        <label>Assinatura</label>
+        <div style="background:var(--bg-secondary);border-radius:var(--radius-sm);padding:10px;border:1px solid var(--border)">
+          <div style="display:flex;gap:4px;margin-bottom:10px">
+            <button class="btn btn-sm" id="tabDesenhar" onclick="switchAssinTab('desenhar')" style="flex:1;justify-content:center;background:var(--blue-glow);color:var(--blue-light);border:1px solid var(--blue-main)">✏️ Desenhar</button>
+            <button class="btn btn-sm" id="tabUpload" onclick="switchAssinTab('upload')" style="flex:1;justify-content:center;background:var(--bg-card2);color:var(--text-secondary);border:1px solid var(--border)">📷 Upload</button>
+          </div>
+          <div id="painelDesenhar">
+            <canvas id="assinCanvas" width="460" height="120"></canvas>
+            <div class="canvas-toolbar">
+              <label style="font-size:11px;text-transform:none;color:var(--text-muted);margin-bottom:0">Cor:</label>
+              <input type="color" id="assinCor" value="#000000" style="width:32px;height:28px;padding:2px;border-radius:4px;cursor:pointer;background:none;border:1px solid var(--border)">
+              <label style="font-size:11px;text-transform:none;color:var(--text-muted);margin-bottom:0">Espessura:</label>
+              <input type="range" id="assinEspessura" min="1" max="6" value="2" style="width:70px">
+              <button class="btn btn-secondary btn-sm" onclick="limparCanvas()" style="margin-left:auto">🗑️ Limpar</button>
+            </div>
+            <p style="font-size:10px;color:var(--text-muted);margin-top:6px">Use o dedo (celular) ou mouse para assinar.</p>
+          </div>
+          <div id="painelUpload" style="display:none">
+            <div id="uploadPlaceholder" style="border:2px dashed var(--border);border-radius:8px;padding:20px;cursor:pointer;text-align:center" onclick="document.getElementById('assinFileInput').click()">
+              <div style="font-size:28px;margin-bottom:6px">📷</div>
+              <p style="font-size:12px;color:var(--text-muted)">Clique para selecionar a foto da assinatura</p>
+            </div>
+            <img id="uploadPreviewImg" style="display:none;max-width:100%;max-height:120px;border-radius:4px;border:1px solid var(--border);background:#fff;padding:4px;margin-top:8px">
+            <input type="file" id="assinFileInput" accept="image/*" style="display:none" onchange="carregarFotoAssinatura(this)">
+          </div>
+        </div>
+      </div>
+      <div id="assinAtualWrap" style="display:none;margin-top:6px">
+        <label>Assinatura atual</label>
+        <div style="background:#fff;padding:6px;border-radius:6px;border:1px solid var(--border);display:inline-block">
+          <img id="assinAtualImg" style="max-height:60px;max-width:100%">
+        </div>
+        <p style="font-size:10px;color:var(--text-muted);margin-top:3px">Desenhe/faça upload acima para substituir.</p>
+      </div>
+    </div>
+    <div class="modal-footer" style="justify-content:space-between">
+      <button class="btn btn-success btn-sm" onclick="baixarAssinatura()" id="btnBaixarAssin" style="display:none">⬇️ Salvar JPEG</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-secondary" onclick="fecharModal('modalAssinatura')">Cancelar</button>
+        <button class="btn btn-primary" onclick="salvarAssinatura()">💾 Salvar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getFirestore, collection, doc, getDocs, setDoc, deleteDoc, onSnapshot, writeBatch } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCVty-K9SjtoYgDTi5RQxZOEhqJi3ADZlY",
+  authDomain: "r-r-aparas.firebaseapp.com",
+  projectId: "r-r-aparas",
+  storageBucket: "r-r-aparas.firebasestorage.app",
+  messagingSenderId: "613812335917",
+  appId: "1:613812335917:web:f50d862d11f10bf0898fa4"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const db = getFirestore(fbApp);
+window.CACHE = { clientes:[], coletas:[], transportes:[], config:{}, usuarios:[], assinaturas:[] };
+
+function setSyncStatus(s) {
+  const dot=document.getElementById('syncDot'), txt=document.getElementById('syncStatus'), top=document.getElementById('topbarSync');
+  if(!dot) return;
+  if(s==='ok'){dot.className='sync-dot ok';txt.textContent='Sincronizado';if(top)top.innerHTML='<span style="color:var(--success);font-size:11px">● Online</span>';}
+  else if(s==='saving'){dot.className='sync-dot';txt.textContent='Salvando...';if(top)top.innerHTML='<span style="color:var(--warning);font-size:11px">↑ Salvando</span>';}
+  else{dot.className='sync-dot err';txt.textContent='Offline';if(top)top.innerHTML='<span style="color:var(--danger);font-size:11px">● Offline</span>';}
+}
+
+async function fsGet(col){ const s=await getDocs(collection(db,col)); return s.docs.map(d=>({id:d.id,...d.data()})); }
+async function fsSave(col,obj){ setSyncStatus('saving'); await setDoc(doc(db,col,obj.id),obj); setSyncStatus('ok'); }
+async function fsDelete(col,id){ setSyncStatus('saving'); await deleteDoc(doc(db,col,id)); setSyncStatus('ok'); }
+async function fsSet(col,id,data){ setSyncStatus('saving'); await setDoc(doc(db,col,id),data); setSyncStatus('ok'); }
+
+window._fsSave=fsSave; window._fsDelete=fsDelete; window._fsSet=fsSet; window._db=db;
+
+function iniciarListeners(){
+  onSnapshot(collection(db,'clientes'),s=>{CACHE.clientes=s.docs.map(d=>({id:d.id,...d.data()}));if(document.getElementById('page-clientes').classList.contains('active'))renderClientes();if(document.getElementById('page-dashboard').classList.contains('active'))renderDashboard();renderRelClienteOpts();});
+  onSnapshot(collection(db,'coletas'),s=>{CACHE.coletas=s.docs.map(d=>({id:d.id,...d.data()}));if(document.getElementById('page-coletas').classList.contains('active'))renderCalendario();if(document.getElementById('page-dashboard').classList.contains('active'))renderDashboard();});
+  onSnapshot(collection(db,'transportes'),s=>{CACHE.transportes=s.docs.map(d=>({id:d.id,...d.data()}));if(document.getElementById('page-transportes').classList.contains('active'))renderTransportes();});
+  onSnapshot(collection(db,'usuarios'),s=>{CACHE.usuarios=s.docs.map(d=>({id:d.id,...d.data()}));if(document.getElementById('page-configuracoes').classList.contains('active'))renderUsuarios();});
+  onSnapshot(doc(db,'config','global'),s=>{if(s.exists()){CACHE.config=s.data();const c=CACHE.config;if(c.logo)aplicarLogo(c.logo);if(c.nomeEmpresa){document.getElementById('brandName').textContent=c.nomeEmpresa;document.getElementById('loginNomeEmpresa').textContent=c.nomeEmpresa;}}});
+  onSnapshot(collection(db,'assinaturas'),s=>{CACHE.assinaturas=s.docs.map(d=>({id:d.id,...d.data()}));if(document.getElementById('page-configuracoes').classList.contains('active'))renderAssinaturas();popularSelectsResponsavel();},e=>console.warn('Listener assinaturas:',e));
+  setSyncStatus('ok');
+}
+
+async function initApp(){
+  document.getElementById('loaderMsg').textContent='Conectando ao Firebase...';
+  try{
+    const [cl,co,tr]=await Promise.all([fsGet('clientes'),fsGet('coletas'),fsGet('transportes')]);
+    CACHE.clientes=cl; CACHE.coletas=co; CACHE.transportes=tr;
+    const cfgS=await getDocs(collection(db,'config')); cfgS.docs.forEach(d=>{if(d.id==='global')CACHE.config=d.data();});
+    const usS=await getDocs(collection(db,'usuarios')); CACHE.usuarios=usS.docs.map(d=>({id:d.id,...d.data()}));
+    // Seed se vazio
+    // Criar admin padrão se não houver usuários
+    if(!CACHE.usuarios.length){
+      const adminObj={id:'user_admin',username:'admin',senha:'admin',papel:'admin',criadoEm:new Date().toISOString()};
+      await fsSave('usuarios',adminObj); CACHE.usuarios=[adminObj];
+    }
+    iniciarListeners(); setSyncStatus('ok');
+  }catch(e){console.error(e);setSyncStatus('error');}
+  const cfg=CACHE.config;
+  if(cfg.logo){aplicarLogo(cfg.logo);atualizarLoginLogo(cfg.logo);}
+  if(cfg.nomeEmpresa){document.getElementById('brandName').textContent=cfg.nomeEmpresa;document.getElementById('loginNomeEmpresa').textContent=cfg.nomeEmpresa;}
+  document.getElementById('dbLoader').classList.add('hidden');
+  document.getElementById('loginScreen').classList.remove('hidden');
+}
+
+
+
+// Iniciar
+initApp();
+</script>
+
+<script>
+// ══════════════════════════
+//  UTILITÁRIOS
+// ══════════════════════════
+function uid(){return '_'+Math.random().toString(36).substr(2,9)+Date.now().toString(36);}
+function fmtKg(v){return v?Number(v).toLocaleString('pt-BR')+' kg':'—';}
+function fmtBRL(v){return v?'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';}
+function fmtData(d){if(!d)return '—';const[y,m,dd]=d.split('-');return`${dd}/${m}/${y}`;}
+const MESES_PT=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+// Mês global de referência (YYYY-MM)
+let MES_REF = new Date().toISOString().slice(0,7);
+
+function mesRefLabel(){const[y,m]=MES_REF.split('-');return`${MESES_PT[parseInt(m)-1]} ${y}`;}
+function atualizarMesSel(){document.getElementById('mesSelLabel').textContent=mesRefLabel();}
+function mesMover(d){
+  const[y,m]=MES_REF.split('-').map(Number);
+  const dt=new Date(y,m-1+d,1);
+  MES_REF=`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}`;
+  atualizarMesSel();
+  const pg=document.querySelector('.page.active');
+  if(pg){const id=pg.id.replace('page-','');renderPage(id);}
+}
+
+// Range para mês específico YYYY-MM
+function mesRange(mes){
+  if(!mes)return{from:'1900-01-01',to:'2999-12-31'};
+  const[y,m]=mes.split('-').map(Number);
+  const ultimo=new Date(y,m,0).getDate();
+  return{from:`${mes}-01`,to:`${mes}-${String(ultimo).padStart(2,'0')}`};
+}
+
+function mesLabelFmt(mes){if(!mes)return 'Todos';const[y,m]=mes.split('-');return`${MESES_PT[parseInt(m)-1]} de ${y}`;}
+
+function nomeCliente(id){const c=(window.CACHE?.clientes||[]).find(x=>x.id===id);return c?c.nome:'—';}
+function badgeResiduo(r){const m={Papelão:'papelao',Plástico:'plastico',Sucata:'sucata'};return`<span class="badge badge-${m[r]||'papelao'}">${r||'—'}</span>`;}
+function badgeTipo(t){const m={geradora:'Geradora',coletora:'Coletora',ambos:'Geradora/Coletora'};const c={geradora:'geradora',coletora:'coletora',ambos:'ambos'};return`<span class="badge badge-${c[t]||'geradora'}">${m[t]||t}</span>`;}
+function badgeStatus(s){return s==='confirmado'?`<span class="badge badge-confirmado">✓ Confirmado</span>`:`<span class="badge badge-pendente">⏳ Pendente</span>`;}
+function maskCNPJ(el){let v=el.value.replace(/\D/g,'').slice(0,14);v=v.replace(/^(\d{2})(\d)/,'$1.$2').replace(/^(\d{2})\.(\d{3})(\d)/,'$1.$2.$3').replace(/\.(\d{3})(\d)/,'.$1/$2').replace(/(\d{4})(\d)/,'$1-$2');el.value=v;}
+function maskTel(el){let v=el.value.replace(/\D/g,'').slice(0,11);if(v.length>10)v=v.replace(/^(\d{2})(\d{5})(\d{4})/,'($1) $2-$3');else v=v.replace(/^(\d{2})(\d{4})(\d)/,'($1) $2-$3');el.value=v;}
+function toggleCheck(input,parentId){document.getElementById(parentId).classList.toggle('checked',input.checked);}
+
+
+function abrirModal(id){document.getElementById(id).classList.add('open');}
+function fecharModal(id){document.getElementById(id).classList.remove('open');}
+
+// ══════════════════════════
+//  LOGIN / LOGOUT / AUTH
+// ══════════════════════════
+let USUARIO_ATUAL = null;
+
+function fazerLogin(){
+  const u=document.getElementById('loginUser').value.trim();
+  const s=document.getElementById('loginPass').value;
+  const err=document.getElementById('loginErr');
+  err.classList.remove('show');
+  if(!u||!s){err.textContent='Preencha usuario e senha.';err.classList.add('show');return;}
+  if(u==='admin'&&s==='admin'){
+    USUARIO_ATUAL={id:'user_admin',username:'admin',papel:'admin'};
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('sidebarUserName').textContent='admin';
+    atualizarMesSel();
+    renderDashboard();
+    try{const e=(window.CACHE.usuarios||[]).find(function(x){return x.id==='user_admin';});if(!e&&window._fsSave)window._fsSave('usuarios',{id:'user_admin',username:'admin',senha:'admin',papel:'admin',criadoEm:new Date().toISOString()});}catch(ex){}
+    return;
+  }
+  const usr=(window.CACHE.usuarios||[]).find(function(x){return x.username===u&&x.senha===s;});
+  if(!usr){err.textContent='Usuario ou senha incorretos.';err.classList.add('show');document.getElementById('loginPass').value='';return;}
+  USUARIO_ATUAL=usr;
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('sidebarUserName').textContent=usr.username;
+  atualizarMesSel();
+  renderDashboard();
+}
+
+function fazerLogout(){
+  USUARIO_ATUAL=null;
+  document.getElementById('loginScreen').classList.remove('hidden');
+  document.getElementById('loginUser').value='';
+  document.getElementById('loginPass').value='';
+  document.getElementById('loginErr').classList.remove('show');
+}
+
+function atualizarLoginLogo(base64){
+  const area=document.getElementById('loginLogoArea');
+  if(!area)return;
+  if(base64)area.innerHTML=`<img src="${base64}" style="width:72px;height:72px;border-radius:18px;object-fit:cover;box-shadow:var(--shadow-blue)">`;
+  else area.innerHTML='<div class="login-logo-icon">R&R</div>';
+}
+
+// ══════════════════════════
+//  USUÁRIOS
+// ══════════════════════════
+function abrirModalUsuario(id){
+  document.getElementById('usuarioEditId').value='';
+  document.getElementById('uUsername').value='';
+  document.getElementById('uSenha').value='';
+  document.getElementById('uSenha2').value='';
+  document.getElementById('uPapel').value='operador';
+  if(id){
+    const u=(CACHE.usuarios||[]).find(x=>x.id===id);if(!u)return;
+    document.getElementById('modalUsuarioTitulo').textContent='Editar Usuário';
+    document.getElementById('usuarioEditId').value=id;
+    document.getElementById('uUsername').value=u.username||'';
+    document.getElementById('uPapel').value=u.papel||'operador';
+  }else{document.getElementById('modalUsuarioTitulo').textContent='Novo Usuário';}
+  abrirModal('modalUsuario');
+}
+
+async function salvarUsuario(){
+  const username=document.getElementById('uUsername').value.trim().toLowerCase();
+  const senha=document.getElementById('uSenha').value;
+  const senha2=document.getElementById('uSenha2').value;
+  const papel=document.getElementById('uPapel').value;
+  const editId=document.getElementById('usuarioEditId').value;
+  if(!username){alert('Informe o usuário.');return;}
+  if(!editId&&!senha){alert('Informe a senha.');return;}
+  if(senha&&senha!==senha2){alert('As senhas não coincidem.');return;}
+  // checar duplicata
+  const dup=(CACHE.usuarios||[]).find(x=>x.username===username&&x.id!==editId);
+  if(dup){alert('Este nome de usuário já existe.');return;}
+  const existing=editId?(CACHE.usuarios||[]).find(x=>x.id===editId):null;
+  const obj={
+    id:editId||uid(),
+    username,
+    senha:senha||(existing?.senha||''),
+    papel,
+    criadoEm:existing?.criadoEm||new Date().toISOString()
+  };
+  try{await window._fsSave('usuarios',obj);fecharModal('modalUsuario');}catch(e){alert('Erro ao salvar usuário: '+(e.message||e));}
+}
+
+async function deletarUsuario(id){
+  if(id==='user_admin'){alert('O usuário admin não pode ser removido.');return;}
+  if(USUARIO_ATUAL?.id===id){alert('Não é possível remover o usuário atual.');return;}
+  if(!confirm('Excluir este usuário?'))return;
+  await window._fsDelete('usuarios',id);
+}
+
+function renderUsuarios(){
+  const tbody=document.getElementById('usuariosTbody');if(!tbody)return;
+  const list=CACHE.usuarios||[];
+  if(!list.length){tbody.innerHTML=`<tr><td colspan="4"><div class="empty"><div class="empty-icon">👤</div><p>Nenhum usuário</p></div></td></tr>`;return;}
+  tbody.innerHTML=list.map(u=>`<tr>
+    <td><strong>${u.username}</strong></td>
+    <td><span class="badge badge-${u.papel==='admin'?'admin':'coletora'}">${u.papel==='admin'?'Admin':'Operador'}</span></td>
+    <td style="font-size:11px;color:var(--text-muted)">${u.criadoEm?new Date(u.criadoEm).toLocaleDateString('pt-BR'):'—'}</td>
+    <td><div style="display:flex;gap:5px">
+      <button class="btn btn-secondary btn-sm btn-icon" onclick="abrirModalUsuario('${u.id}')" title="Editar">✏️</button>
+      ${u.id!=='user_admin'?`<button class="btn btn-danger btn-sm btn-icon" onclick="deletarUsuario('${u.id}')" title="Excluir">🗑️</button>`:''}
+    </div></td>
+  </tr>`).join('');
+}
+
+// ══════════════════════════
+//  NAV
+// ══════════════════════════
+const pageTitles={dashboard:'Dashboard',coletas:'Coletas',clientes:'Clientes',transportes:'Caminhões & Motoristas','relatorio-cliente':'Relatório do Cliente','relatorio-pessoal':'Relatório Pessoal',configuracoes:'Configurações'};
+function goTo(page,el){
+  if(!USUARIO_ATUAL)return;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  if(el)el.classList.add('active');
+  document.getElementById('pageTitle').textContent=pageTitles[page]||'';
+  closeSidebar();
+  // mostrar/ocultar seletor de mês
+  const showMes=['dashboard','relatorio-cliente','relatorio-pessoal'].includes(page);
+  document.getElementById('mesSel').style.display=showMes?'flex':'none';
+  renderPage(page);
+}
+function renderPage(page){
+  if(page==='dashboard')renderDashboard();
+  else if(page==='coletas')renderCalendario();
+  else if(page==='clientes')renderClientes();
+  else if(page==='transportes')renderTransportes();
+  else if(page==='relatorio-cliente'){renderRelClienteOpts();popularSelectsResponsavel();}
+  else if(page==='relatorio-pessoal'){popularSelectsResponsavel();gerarRelPessoal();}
+  else if(page==='configuracoes'){renderConfiguracoes();renderAssinaturas();popularSelectsResponsavel();}
+}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('open');}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebarOverlay').classList.remove('open');}
+
+// ══════════════════════════
+//  TRANSPORTES
+// ══════════════════════════
+function abrirModalTransporte(id){
+  document.getElementById('transpEditId').value='';document.getElementById('tPlaca').value='';document.getElementById('tMotorista').value='';document.getElementById('tObs').value='';
+  if(id){const t=(CACHE.transportes||[]).find(x=>x.id===id);if(!t)return;document.getElementById('modalTransporteTitulo').textContent='Editar';document.getElementById('transpEditId').value=id;document.getElementById('tPlaca').value=t.placa||'';document.getElementById('tMotorista').value=t.motorista||'';document.getElementById('tObs').value=t.obs||'';}
+  else{document.getElementById('modalTransporteTitulo').textContent='Novo Caminhão / Motorista';}
+  abrirModal('modalTransporte');
+}
+async function salvarTransporte(){
+  const placa=document.getElementById('tPlaca').value.trim().toUpperCase();const mot=document.getElementById('tMotorista').value.trim();
+  if(!placa||!mot){alert('Informe placa e motorista.');return;}
+  const editId=document.getElementById('transpEditId').value;
+  const dup=(CACHE.transportes||[]).find(t=>t.placa===placa&&t.motorista===mot&&t.id!==editId);
+  if(dup&&!editId){fecharModal('modalTransporte');return;}
+  try{await window._fsSave('transportes',{id:editId||uid(),placa,motorista:mot,obs:document.getElementById('tObs').value});fecharModal('modalTransporte');}catch(e){alert('Erro ao salvar caminhão: '+(e.message||e));}
+}
+async function deletarTransporte(id){if(!confirm('Excluir?'))return;await window._fsDelete('transportes',id);}
+function renderTransportes(){
+  const busca=(document.getElementById('buscaTransporte')?.value||'').toLowerCase();
+  const list=(CACHE.transportes||[]).filter(t=>!busca||t.placa.toLowerCase().includes(busca)||t.motorista.toLowerCase().includes(busca));
+  const coletas=CACHE.coletas||[];const tbody=document.getElementById('transportesTbody');
+  if(!list.length){tbody.innerHTML=`<tr><td colspan="5"><div class="empty"><div class="empty-icon">🚛</div><p>Nenhum cadastro</p></div></td></tr>`;return;}
+  tbody.innerHTML=list.map(t=>{const cols=coletas.filter(c=>c.placa===t.placa&&c.motorista===t.motorista);const ult=cols.sort((a,b)=>b.data.localeCompare(a.data))[0];return`<tr><td><strong style="font-family:monospace">${t.placa||'—'}</strong></td><td>${t.motorista}</td><td><span class="badge badge-confirmado">${cols.length}</span></td><td>${ult?fmtData(ult.data):'—'}</td><td><div style="display:flex;gap:5px"><button class="btn btn-secondary btn-sm btn-icon" onclick="abrirModalTransporte('${t.id}')">✏️</button><button class="btn btn-danger btn-sm btn-icon" onclick="deletarTransporte('${t.id}')">🗑️</button></div></td></tr>`;}).join('');
+}
+function popularTransporteSel(){
+  const sel=document.getElementById('cTransporteSel'),dl=document.getElementById('motoristasDatalist');if(!sel)return;
+  const list=CACHE.transportes||[];
+  sel.innerHTML='<option value="">— Manual —</option>'+list.map(t=>`<option value="${t.id}">${t.placa} · ${t.motorista}</option>`).join('');
+  if(dl){const mots=[...new Set(list.map(t=>t.motorista))];dl.innerHTML=mots.map(m=>`<option value="${m}">`).join('');}
+}
+function preencherTransporteSel(){const id=document.getElementById('cTransporteSel').value;if(!id){document.getElementById('cPlaca').value='';document.getElementById('cMotorista').value='';document.getElementById('placaHint').textContent='';document.getElementById('transporteCadHint').style.display='none';return;}const t=(CACHE.transportes||[]).find(x=>x.id===id);if(!t)return;document.getElementById('cPlaca').value=t.placa;document.getElementById('cMotorista').value=t.motorista;document.getElementById('placaHint').textContent='';document.getElementById('transporteCadHint').style.display='none';}
+function verificarTransporte(){const placa=document.getElementById('cPlaca').value.trim().toUpperCase(),mot=document.getElementById('cMotorista').value.trim(),hint=document.getElementById('transporteCadHint'),ph=document.getElementById('placaHint');if(!placa&&!mot){hint.style.display='none';ph.textContent='';return;}const e=(CACHE.transportes||[]).find(t=>t.placa===placa&&t.motorista===mot);if(e){hint.style.display='none';ph.textContent='✓ Cadastrado';ph.style.color='var(--success)';document.getElementById('cTransporteSel').value=e.id;}else if(placa&&mot){hint.style.display='block';ph.textContent='';}else{hint.style.display='none';ph.textContent='';}}
+
+// ══════════════════════════
+//  CLIENTES
+// ══════════════════════════
+function abrirModalCliente(id){
+  limparFormCliente();
+  if(id){const c=(CACHE.clientes||[]).find(x=>x.id===id);if(!c)return;document.getElementById('modalClienteTitulo').textContent='Editar Cliente';document.getElementById('clienteEditId').value=id;document.getElementById('cNome').value=c.nome||'';document.getElementById('cCNPJ').value=c.cnpj||'';document.getElementById('cTelefone').value=c.telefone||'';document.getElementById('cEmail').value=c.email||'';document.getElementById('cEndereco').value=c.endereco||'';document.getElementById('cTipo').value=c.tipo||'geradora';document.getElementById('cBanco').value=c.banco||'';document.getElementById('cAgConta').value=c.agConta||'';document.getElementById('cPix').value=c.pix||'';(c.residuos||[]).forEach(r=>{if(r==='Papelão'){document.querySelector('#cbPapelao input').checked=true;document.getElementById('cbPapelao').classList.add('checked');}if(r==='Plástico'){document.querySelector('#cbPlastico input').checked=true;document.getElementById('cbPlastico').classList.add('checked');}if(r==='Sucata'){document.querySelector('#cbSucata input').checked=true;document.getElementById('cbSucata').classList.add('checked');}});}else{document.getElementById('modalClienteTitulo').textContent='Novo Cliente';}
+  abrirModal('modalCliente');
+}
+function limparFormCliente(){['clienteEditId','cNome','cCNPJ','cTelefone','cEmail','cEndereco','cBanco','cAgConta','cPix'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});document.getElementById('cTipo').value='geradora';['cbPapelao','cbPlastico','cbSucata'].forEach(id=>{const cb=document.querySelector('#'+id+' input');if(cb)cb.checked=false;document.getElementById(id).classList.remove('checked');});}
+async function salvarCliente(){
+  const nome=document.getElementById('cNome').value.trim();if(!nome){alert('Nome é obrigatório.');return;}
+  const residuos=[];if(document.querySelector('#cbPapelao input').checked)residuos.push('Papelão');if(document.querySelector('#cbPlastico input').checked)residuos.push('Plástico');if(document.querySelector('#cbSucata input').checked)residuos.push('Sucata');if(!residuos.length){alert('Selecione ao menos um resíduo.');return;}
+  const obj={id:document.getElementById('clienteEditId').value||uid(),nome,cnpj:document.getElementById('cCNPJ').value,telefone:document.getElementById('cTelefone').value,email:document.getElementById('cEmail').value,endereco:document.getElementById('cEndereco').value,tipo:document.getElementById('cTipo').value,residuos,banco:document.getElementById('cBanco').value,agConta:document.getElementById('cAgConta').value,pix:document.getElementById('cPix').value};
+  try{await window._fsSave('clientes',obj);fecharModal('modalCliente');}catch(e){alert('Erro ao salvar cliente: '+(e.message||e));}
+}
+async function deletarCliente(id){if(!confirm('Excluir?'))return;await window._fsDelete('clientes',id);}
+function renderClientes(){
+  const busca=(document.getElementById('buscaCliente')?.value||'').toLowerCase(),tipo=document.getElementById('filtroTipoCliente')?.value||'';
+  const list=(CACHE.clientes||[]).filter(c=>(!busca||c.nome.toLowerCase().includes(busca)||c.cnpj?.includes(busca))&&(!tipo||c.tipo===tipo));
+  const tbody=document.getElementById('clientesTbody');
+  if(!list.length){tbody.innerHTML=`<tr><td colspan="6"><div class="empty"><div class="empty-icon">🏢</div><p>Nenhum cliente</p></div></td></tr>`;return;}
+  tbody.innerHTML=list.map(c=>`<tr><td><strong>${c.nome}</strong></td><td style="font-family:monospace;font-size:11px">${c.cnpj||'—'}</td><td>${c.telefone||'—'}</td><td>${badgeTipo(c.tipo)}</td><td>${(c.residuos||[]).map(badgeResiduo).join(' ')}</td><td><div style="display:flex;gap:5px"><button class="btn btn-secondary btn-sm btn-icon" onclick="abrirModalCliente('${c.id}')">✏️</button><button class="btn btn-danger btn-sm btn-icon" onclick="deletarCliente('${c.id}')">🗑️</button></div></td></tr>`).join('');
+}
+
+// ══════════════════════════
+//  COLETAS
+// ══════════════════════════
+function popularSelectsColeta(){
+  const cl=CACHE.clientes||[],ger=document.getElementById('cGeradora'),col=document.getElementById('cColetora');if(!ger||!col)return;
+  const opts=cl.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
+  ger.innerHTML='<option value="">Selecione...</option>'+opts;col.innerHTML='<option value="">Selecione...</option>'+opts;popularTransporteSel();
+}
+let calNovaColetaData=null;
+function abrirModalNovaColeta(id){
+  popularSelectsColeta();document.getElementById('placaHint').textContent='';document.getElementById('transporteCadHint').style.display='none';
+  if(id){const c=(CACHE.coletas||[]).find(x=>x.id===id);if(!c)return;document.getElementById('modalColetaTitulo').textContent='Editar Coleta';document.getElementById('coletaEditId').value=id;document.getElementById('cData').value=c.data||'';document.getElementById('cHora').value=c.hora||'';document.getElementById('cGeradora').value=c.geradoraId||'';document.getElementById('cColetora').value=c.coletoraId||'';document.getElementById('cResiduo').value=c.residuo||'Papelão';document.getElementById('cStatus').value=c.status||'pendente';document.getElementById('cPlaca').value=c.placa||'';document.getElementById('cMotorista').value=c.motorista||'';document.getElementById('cPeso').value=c.peso||'';
+        document.getElementById('cPrecoKg').value=c.precoKg||'';
+        document.getElementById('cPrecoUnit').value=c.precoUnit||'';
+        // Restaurar tipo de preço
+        var tipoSalvo=c.tipoPreco||'kg';
+        var radioKg=document.getElementById('cTipoKg');
+        var radioUnit=document.getElementById('cTipoUnit');
+        if(radioKg&&radioUnit){radioKg.checked=(tipoSalvo==='kg');radioUnit.checked=(tipoSalvo==='unitario');toggleTipoPreco();}document.getElementById('cObs').value=c.obs||'';const t=(CACHE.transportes||[]).find(x=>x.placa===c.placa&&x.motorista===c.motorista);document.getElementById('cTransporteSel').value=t?t.id:'';calcTotal();}
+  else{document.getElementById('modalColetaTitulo').textContent='Nova Coleta';document.getElementById('coletaEditId').value='';const dataBase=calNovaColetaData||new Date().toISOString().slice(0,10);calNovaColetaData=null;document.getElementById('cData').value=dataBase;document.getElementById('cHora').value=new Date().toTimeString().slice(0,5);['cGeradora','cColetora'].forEach(x=>document.getElementById(x).value='');document.getElementById('cResiduo').value='Papelão';document.getElementById('cStatus').value='pendente';document.getElementById('cPlaca').value='';document.getElementById('cMotorista').value='';document.getElementById('cPeso').value='';document.getElementById('cPrecoKg').value='';document.getElementById('cTotal').value='';document.getElementById('cObs').value='';document.getElementById('cTransporteSel').value='';}
+  abrirModal('modalColeta');
+}
+function abrirModalNovaColetaData(){calNovaColetaData=calDiaSel;abrirModalNovaColeta();}
+
+// CONFIRMAR COLETA — modal rápido
+function abrirConfirmar(id){
+  const c=(CACHE.coletas||[]).find(x=>x.id===id);if(!c)return;
+  document.getElementById('confirmarColetaId').value=id;
+  const now=new Date();
+  document.getElementById('confData').value=c.data||now.toISOString().slice(0,10);
+  document.getElementById('confHora').value=c.hora||now.toTimeString().slice(0,5);
+  document.getElementById('confPeso').value=c.peso||'';
+  document.getElementById('confPrecoKg').value=c.precoKg||'';
+  document.getElementById('confPrecoUnit').value=c.precoUnit||'';
+  // Restaurar tipo de preço
+  var tipoC=c.tipoPreco||'kg';
+  var rKg=document.getElementById('confTipoKg');
+  var rUnit=document.getElementById('confTipoUnit');
+  if(rKg&&rUnit){rKg.checked=(tipoC==='kg');rUnit.checked=(tipoC==='unitario');toggleConfTipoPreco();}
+  document.getElementById('confTotal').value='';
+  if(c.precoKg&&c.peso)document.getElementById('confTotal').value=fmtBRL(c.peso*c.precoKg);
+  document.getElementById('confirmarResumo').innerHTML=`<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+    <div><div style="font-size:10px;color:var(--text-muted)">Geradora</div><div style="font-weight:600">${nomeCliente(c.geradoraId)}</div></div>
+    <span style="color:var(--text-muted)">→</span>
+    <div><div style="font-size:10px;color:var(--text-muted)">Coletora</div><div style="font-weight:600">${nomeCliente(c.coletoraId)}</div></div>
+    <div style="margin-left:auto">${badgeResiduo(c.residuo)}</div>
+  </div>
+  ${c.motorista?`<div style="margin-top:6px;font-size:11px;color:var(--text-muted)">🚛 ${c.placa||'—'} · ${c.motorista}</div>`:''}`;
+  fecharModal('modalDetalhe');
+  abrirModal('modalConfirmar');
+}
+async function executarConfirmar(){
+  const id=document.getElementById('confirmarColetaId').value;
+  const data=document.getElementById('confData').value;
+  const hora=document.getElementById('confHora').value;
+  const peso=parseFloat(document.getElementById('confPeso').value)||0;
+  const precoKg=parseFloat(document.getElementById('confPrecoKg').value)||0;
+  if(!data){alert('Informe a data.');return;}
+  const c=(CACHE.coletas||[]).find(x=>x.id===id);if(!c)return;
+  var tipoPrecoConf=(document.querySelector('input[name="confTipoPreco"]:checked')||{value:'kg'}).value;
+  var precoUnitConf=parseFloat(document.getElementById('confPrecoUnit').value)||0;
+  const obj={...c,data,hora,peso,precoKg,tipoPreco:tipoPrecoConf,precoUnit:precoUnitConf,status:'confirmado'};
+  try{await window._fsSave('coletas',obj);fecharModal('modalConfirmar');}catch(e){alert('Erro ao confirmar coleta: '+(e.message||e));}
+  const[cy,cm]=data.split('-').map(Number);calAno=cy;calMes=cm-1;calDiaSel=data;
+}
+
+async function salvarColeta(){
+  const geradoraId=document.getElementById('cGeradora').value,coletoraId=document.getElementById('cColetora').value,data=document.getElementById('cData').value;
+  if(!data||!geradoraId||!coletoraId){alert('Preencha data, geradora e coletora.');return;}
+  const placa=document.getElementById('cPlaca').value.trim().toUpperCase(),motorista=document.getElementById('cMotorista').value.trim();
+  if(placa&&motorista){const e=(CACHE.transportes||[]).find(t=>t.placa===placa&&t.motorista===motorista);if(!e)await window._fsSave('transportes',{id:uid(),placa,motorista,obs:''});}
+  const obj={id:document.getElementById('coletaEditId').value||uid(),data,hora:document.getElementById('cHora').value,geradoraId,coletoraId,residuo:document.getElementById('cResiduo').value,status:document.getElementById('cStatus').value,placa,motorista,peso:parseFloat(document.getElementById('cPeso').value)||0,
+    tipoPreco:(document.querySelector('input[name="cTipoPreco"]:checked')||{value:'kg'}).value,
+    precoKg:parseFloat(document.getElementById('cPrecoKg').value)||0,
+    precoUnit:parseFloat(document.getElementById('cPrecoUnit').value)||0,
+    obs:document.getElementById('cObs').value};
+  try{await window._fsSave('coletas',obj);fecharModal('modalColeta');}catch(e){alert('Erro ao salvar coleta: '+(e.message||e));}
+  const[cy,cm]=obj.data.split('-').map(Number);calAno=cy;calMes=cm-1;calDiaSel=obj.data;
+}
+async function deletarColeta(id){if(!confirm('Excluir coleta?'))return;await window._fsDelete('coletas',id);calDiaSel=null;fecharDetalhe();}
+
+function verDetalheColeta(id){
+  const c=(CACHE.coletas||[]).find(x=>x.id===id);if(!c)return;
+  const total=calcValorColeta(c);
+  document.getElementById('modalDetalheBody').innerHTML=`
+    <div class="form-row cols-2" style="margin-bottom:10px">
+      <div><div class="card-title">Data / Hora</div><div style="font-size:14px">${fmtData(c.data)} ${c.hora?'às '+c.hora:''}</div></div>
+      <div><div class="card-title">Status</div>${badgeStatus(c.status)}</div>
+    </div>
+    <div class="form-row cols-2" style="margin-bottom:10px">
+      <div><div class="card-title">Geradora</div><div style="font-size:14px">${nomeCliente(c.geradoraId)}</div></div>
+      <div><div class="card-title">Coletora</div><div style="font-size:14px">${nomeCliente(c.coletoraId)}</div></div>
+    </div>
+    <div class="form-row cols-3" style="margin-bottom:10px">
+      <div><div class="card-title">Resíduo</div>${badgeResiduo(c.residuo)}</div>
+      <div><div class="card-title">Placa</div><div style="font-family:monospace">${c.placa||'—'}</div></div>
+      <div><div class="card-title">Motorista</div>${c.motorista||'—'}</div>
+    </div>
+    <div class="form-row cols-3" style="margin-bottom:10px">
+      <div><div class="card-title">Peso</div><div style="font-size:14px;color:var(--blue-light)">${fmtKg(c.peso)}</div></div>
+      <div><div class="card-title">R$/kg</div>${c.precoKg?fmtBRL(c.precoKg):'—'}</div>
+      <div><div class="card-title">Total</div><div style="font-size:14px;color:var(--success)">${total?fmtBRL(total):'—'}</div></div>
+    </div>
+    ${c.obs?`<div class="alert alert-warning">📝 ${c.obs}</div>`:''}`;
+  document.getElementById('modalDetalheFooter').innerHTML=`
+    <button class="btn btn-secondary btn-sm" onclick="fecharModal('modalDetalhe')">Fechar</button>
+    ${c.status==='pendente'?`<button class="btn btn-success btn-sm" onclick="abrirConfirmar('${c.id}')">✅ Confirmar</button>`:''}
+    <button class="btn btn-secondary btn-sm" onclick="fecharModal('modalDetalhe');abrirModalNovaColeta('${c.id}')">✏️ Editar</button>
+    <button class="btn btn-danger btn-sm" onclick="fecharModal('modalDetalhe');deletarColeta('${c.id}')">🗑️</button>`;
+  abrirModal('modalDetalhe');
+}
+
+// ══════════════════════════
+//  CALENDÁRIO
+// ══════════════════════════
+let calAno=new Date().getFullYear(),calMes=new Date().getMonth(),calDiaSel=null;
+function calNavMes(d){calMes+=d;if(calMes>11){calMes=0;calAno++;}if(calMes<0){calMes=11;calAno--;}calDiaSel=null;fecharDetalhe();renderCalendario();}
+function calHoje(){const n=new Date();calAno=n.getFullYear();calMes=n.getMonth();calDiaSel=null;fecharDetalhe();renderCalendario();}
+function fecharDetalhe(){document.getElementById('calDiaDetalhe').classList.remove('open');}
+function renderCalendario(){
+  const filtro=document.getElementById('filtroTipoColeta')?.value||'';
+  document.getElementById('calMesAno').textContent=`${MESES_PT[calMes]} ${calAno}`;
+  const mapa={};
+  (CACHE.coletas||[]).forEach(c=>{if(filtro&&c.residuo!==filtro)return;const[cy,cm]=c.data.split('-').map(Number);if(cy===calAno&&cm-1===calMes){if(!mapa[c.data])mapa[c.data]=[];mapa[c.data].push(c);}});
+  const hoje=new Date().toISOString().slice(0,10),pri=new Date(calAno,calMes,1).getDay(),ult=new Date(calAno,calMes+1,0).getDate(),ant=new Date(calAno,calMes,0).getDate();
+  const cR={Papelão:'papelao',Plástico:'plastico',Sucata:'sucata'};const MAX=3;let h='';
+  for(let i=0;i<pri;i++)h+=`<div class="cal-day outro-mes"><div class="cal-day-num">${ant-pri+1+i}</div></div>`;
+  for(let d=1;d<=ult;d++){
+    const ds=String(d).padStart(2,'0'),ms=String(calMes+1).padStart(2,'0'),dt=`${calAno}-${ms}-${ds}`;
+    const cols=mapa[dt]||[],isH=dt===hoje,isS=dt===calDiaSel,temC=cols.length>0;
+    let cls='cal-day'+(isH?' hoje':'')+(temC?' tem-coleta':'');
+    let ev='';cols.slice(0,MAX).forEach(c=>{ev+=`<div class="cal-evento ${cR[c.residuo]||'papelao'}${c.status==='pendente'?' pendente':''}">${nomeCliente(c.geradoraId)}</div>`;});
+    if(cols.length>MAX)ev+=`<div class="cal-mais">+${cols.length-MAX}</div>`;
+    h+=`<div class="${cls}" onclick="selecionarDia('${dt}')" style="${isS?'border-color:var(--blue-main);box-shadow:0 0 0 2px var(--blue-main);':''}"><div class="cal-day-num">${d}</div>${ev}</div>`;
+  }
+  const tot=pri+ult,rest=tot%7;if(rest!==0)for(let i=1;i<=7-rest;i++)h+=`<div class="cal-day outro-mes"><div class="cal-day-num">${i}</div></div>`;
+  document.getElementById('calDias').innerHTML=h;
+  if(calDiaSel){const f2=document.getElementById('filtroTipoColeta')?.value||'';const c2=(CACHE.coletas||[]).filter(c=>c.data===calDiaSel&&(!f2||c.residuo===f2));abrirDetalheDia(calDiaSel,c2);}
+}
+function selecionarDia(dt){calDiaSel=dt;renderCalendario();const f=document.getElementById('filtroTipoColeta')?.value||'';const c=(CACHE.coletas||[]).filter(x=>x.data===dt&&(!f||x.residuo===f));abrirDetalheDia(dt,c);setTimeout(()=>document.getElementById('calDiaDetalhe').scrollIntoView({behavior:'smooth',block:'nearest'}),50);}
+function abrirDetalheDia(dt,cols){
+  const[y,m,d]=dt.split('-');const nd=['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];const dt2=new Date(Number(y),Number(m)-1,Number(d));
+  document.getElementById('calDetalheData').textContent=`${nd[dt2.getDay()]}, ${d}/${m}/${y}`;
+  const cM={Papelão:'var(--blue-main)',Plástico:'var(--success)',Sucata:'var(--warning)'};
+  let h='';
+  if(!cols.length)h=`<div style="color:var(--text-muted);font-size:12px;text-align:center;padding:16px 0">Nenhuma coleta neste dia.</div>`;
+  else cols.sort((a,b)=>a.hora.localeCompare(b.hora)).forEach(c=>{
+    const cor=cM[c.residuo]||'var(--blue-main)',total=calcValorColeta(c);
+    h+=`<div class="coleta-mini">
+      <div class="coleta-mini-cor" style="background:${cor}"></div>
+      <div class="coleta-mini-info" onclick="verDetalheColeta('${c.id}')" style="cursor:pointer">
+        <div class="coleta-mini-titulo">${nomeCliente(c.geradoraId)} → ${nomeCliente(c.coletoraId)}</div>
+        <div class="coleta-mini-sub">${c.hora?c.hora+' · ':''}${c.residuo}${c.motorista?' · '+c.motorista:''}${c.placa?' · '+c.placa:''}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
+        ${badgeStatus(c.status)}
+        <div style="font-size:11px;color:var(--blue-light);font-weight:600">${c.peso?fmtKg(c.peso):'Pendente'}</div>
+        ${total?`<div style="font-size:10px;color:var(--success)">${fmtBRL(total)}</div>`:''}
+        <div style="display:flex;gap:4px;margin-top:2px">
+          ${c.status==='pendente'?`<button class="btn-confirmar-mini" onclick="abrirConfirmar('${c.id}')">✅ Confirmar</button>`:''}
+          <button class="btn-editar-mini" onclick="abrirModalNovaColeta('${c.id}')">✏️</button>
+        </div>
+      </div>
+    </div>`;
+  });
+  document.getElementById('calDetalheList').innerHTML=h;document.getElementById('calDiaDetalhe').classList.add('open');
+}
+
+// ══════════════════════════
+//  DASHBOARD
+// ══════════════════════════
+function renderDashboard(){
+  const coletas=CACHE.coletas||[],clientes=CACHE.clientes||[];
+  const{from,to}=mesRange(MES_REF);
+  const cM=coletas.filter(c=>c.data>=from&&c.data<=to);
+  const pesoM=cM.reduce((s,c)=>s+(c.peso||0),0);
+  const valM=cM.reduce((s,c)=>s+calcValorColeta(c),0);
+  const pend=cM.filter(c=>c.status==='pendente').length;
+  document.getElementById('dashStats').innerHTML=`
+    <div class="stat-card"><div class="stat-icon">🚛</div><div class="stat-label">Coletas no mês</div><div class="stat-value">${cM.length}</div><div class="stat-sub">${pend} pendentes</div></div>
+    <div class="stat-card green"><div class="stat-icon">⚖️</div><div class="stat-label">Peso total</div><div class="stat-value">${(pesoM/1000).toFixed(2).replace('.',',')} t</div><div class="stat-sub">${pesoM.toLocaleString('pt-BR')} kg</div></div>
+    <div class="stat-card yellow"><div class="stat-icon">💰</div><div class="stat-label">Valor total</div><div class="stat-value" style="font-size:18px">${fmtBRL(valM)}</div><div class="stat-sub">${mesLabelFmt(MES_REF)}</div></div>
+    <div class="stat-card silver"><div class="stat-icon">⏳</div><div class="stat-label">Pendentes</div><div class="stat-value" style="color:${pend?'var(--warning)':'var(--success)'}">${pend}</div><div class="stat-sub">Aguardando peso</div></div>`;
+  const tipos=['Papelão','Plástico','Sucata'],totalP=pesoM||1,pR={};
+  tipos.forEach(t=>{pR[t]=cM.filter(c=>c.residuo===t).reduce((s,c)=>s+(c.peso||0),0);});
+  const cores={Papelão:'var(--blue-main)',Plástico:'var(--success)',Sucata:'var(--warning)'};
+  document.getElementById('dashResiduos').innerHTML=tipos.map(t=>`<div class="residuo-bar"><div class="residuo-bar-label"><span>${t}</span><span style="color:var(--text-muted)">${fmtKg(pR[t])}</span></div><div class="residuo-bar-track"><div class="residuo-bar-fill" style="width:${(pR[t]/totalP*100).toFixed(1)}%;background:${cores[t]}"></div></div></div>`).join('');
+  const ger=clientes.filter(c=>c.tipo==='geradora'||c.tipo==='ambos').length,col=clientes.filter(c=>c.tipo==='coletora'||c.tipo==='ambos').length;
+  document.getElementById('dashEmpresas').innerHTML=`<div style="display:flex;gap:12px;align-items:center;padding:6px 0">
+    <div style="text-align:center;flex:1"><div style="font-size:28px;font-family:Rajdhani,sans-serif;font-weight:700;color:var(--blue-light)">${ger}</div><div style="font-size:10px;color:var(--text-muted);text-transform:uppercase">Geradoras</div></div>
+    <div style="width:1px;height:50px;background:var(--border)"></div>
+    <div style="text-align:center;flex:1"><div style="font-size:28px;font-family:Rajdhani,sans-serif;font-weight:700;color:#5eead4">${col}</div><div style="font-size:10px;color:var(--text-muted);text-transform:uppercase">Coletoras</div></div>
+    <div style="width:1px;height:50px;background:var(--border)"></div>
+    <div style="text-align:center;flex:1"><div style="font-size:28px;font-family:Rajdhani,sans-serif;font-weight:700;color:var(--text-primary)">${clientes.length}</div><div style="font-size:10px;color:var(--text-muted);text-transform:uppercase">Total</div></div>
+  </div>`;
+  const ult=[...cM].sort((a,b)=>b.data.localeCompare(a.data)).slice(0,8);
+  document.getElementById('dashUltimas').innerHTML=ult.length?ult.map(c=>`<tr><td>${fmtData(c.data)}</td><td>${nomeCliente(c.geradoraId)}</td><td>${nomeCliente(c.coletoraId)}</td><td>${c.motorista||'—'}</td><td>${fmtKg(c.peso)}</td><td>${badgeStatus(c.status)}</td></tr>`).join(''):`<tr><td colspan="6"><div class="empty" style="padding:20px"><p>Nenhuma coleta em ${mesLabelFmt(MES_REF)}</p></div></td></tr>`;
+}
+
+// ══════════════════════════
+//  RELATÓRIOS helpers
+// ══════════════════════════
+function relHeaderHtml(sub){
+  const cfg=CACHE?.config||{};
+  const logo=cfg.logo?`<img src="${cfg.logo}" style="height:46px;object-fit:contain;border-radius:5px" alt="Logo">`:`<div style="font-family:Rajdhani,sans-serif;font-size:20px;font-weight:700;color:#4d9fff;letter-spacing:2px">R&R</div>`;
+  const nome=(cfg.nomeEmpresa||'R&R Aparas de Papelão').toUpperCase();
+  return`<div class="relatorio-header-print"><div style="display:flex;align-items:center;gap:12px">${logo}<div><div style="font-family:Rajdhani,sans-serif;font-size:20px;font-weight:700;letter-spacing:1px">${nome}</div><div style="font-size:11px;color:#7db6ff;margin-top:1px">${sub}</div></div></div><div style="text-align:right;font-size:10px;color:#9ab8e0;line-height:1.7"><div style="font-weight:600">(11) 93909-3919</div><div>contato.reraparas@gmail.com</div><div>@reraparasdepapelao</div></div></div>`;
+}
+function relRodapeHtml(){
+  const cfg=CACHE?.config||{};const n=cfg.nomeEmpresa||'R&R Aparas de Papelão';
+  return`<div style="margin-top:18px;border-top:2px solid #0d1a35;padding-top:8px;display:flex;justify-content:space-between;align-items:flex-end;font-size:9px;color:#555"><div><strong style="color:#0d1a35;font-size:10px">${n}</strong><br>(11) 93909-3919 · contato.reraparas@gmail.com</div><div style="text-align:center;color:#0d1a35;font-weight:600;font-size:10px">Responsável pelo Lançamento<br><span style="font-size:11px">${n}</span></div><div style="text-align:right">@reraparasdepapelao<br>R&R Aparas de Papelão</div></div>`;
+}
+
+// Botões de ação dos relatórios
+function relAcoesHtml(textoWpp){
+  const msg=encodeURIComponent(textoWpp||'Segue o relatório de coletas R&R Aparas de Papelão.');
+  const wppUrl=`https://wa.me/?text=${msg}`;
+  return`<div class="rel-acoes no-print">
+    <button class="btn btn-primary btn-sm" onclick="window.print()">🖨️ Imprimir / PDF</button>
+    <a class="btn btn-whatsapp btn-sm" href="${wppUrl}" target="_blank" rel="noopener">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+      WhatsApp
+    </a>
+  </div>`;
+}
+
+// ══════════════════════════
+//  RELATÓRIO CLIENTE
+// ══════════════════════════
+function renderRelClienteOpts(){
+  const sel=document.getElementById('relClienteSel');if(!sel)return;
+  sel.innerHTML='<option value="">Selecione...</option>'+(CACHE.clientes||[]).map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
+  // pré-selecionar mês global
+  const rm=document.getElementById('relClienteMes');if(rm&&!rm.value)rm.value=MES_REF;
+  document.getElementById('relClientePreview').innerHTML=`<div class="empty"><div class="empty-icon">📄</div><p>Selecione um cliente</p></div>`;
+}
+function gerarRelCliente(){
+  const clienteId=document.getElementById('relClienteSel').value,papel=document.getElementById('relClientePapel').value;
+  const tipoPeriodo=document.getElementById('relClientePeriodoTipo')?document.getElementById('relClientePeriodoTipo').value:'mes';
+  const preview=document.getElementById('relClientePreview');
+  if(!clienteId){preview.innerHTML=`<div class="empty"><div class="empty-icon">📄</div><p>Selecione um cliente</p></div>`;return;}
+  const cliente=(CACHE.clientes||[]).find(x=>x.id===clienteId);
+  let from, to, labelM;
+  if(tipoPeriodo==='semana'){
+    const semanaVal=document.getElementById('relClienteSemana').value;
+    const r=semanaRange(semanaVal);
+    if(!r){preview.innerHTML=`<div class="empty"><div class="empty-icon">📅</div><p>Selecione uma semana</p></div>`;return;}
+    from=r.from; to=r.to; labelM=semanaLabelFmt(semanaVal);
+  } else {
+    const mes=document.getElementById('relClienteMes').value||MES_REF;
+    const r=mesRange(mes); from=r.from; to=r.to; labelM=mesLabelFmt(mes);
+  }
+  let coletas=(CACHE.coletas||[]).filter(c=>{
+    if(c.data<from||c.data>to)return false;
+    if(papel==='geradora')return c.geradoraId===clienteId;
+    if(papel==='coletora')return c.coletoraId===clienteId;
+    return c.geradoraId===clienteId||c.coletoraId===clienteId;
+  }).sort((a,b)=>a.data.localeCompare(b.data));
+  const totalPeso=coletas.reduce((s,c)=>s+(c.peso||0),0),conf=coletas.filter(c=>c.status==='confirmado').length;
+  const dataEmissao=new Date().toLocaleDateString('pt-BR');
+  const wppTxt=`R&R Aparas de Papelão\nRelatório de Coleta — ${cliente.nome}\nPeríodo: ${labelM}\nTotal: ${fmtKg(totalPeso)}\nEmitido em: ${dataEmissao}`;
+  preview.innerHTML=`${relAcoesHtml(wppTxt)}
+    <div class="relatorio-preview">
+      ${relHeaderHtml('Relatório de Coleta por Cliente Cadastrado')}
+      <div class="relatorio-body">
+        <h3 style="color:#0d1a35;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;padding-bottom:4px;border-bottom:2px solid #1a6fff">1. Identificação do Relatório</h3>
+        <table class="rel-info-table">
+          <tr><td class="lbl">Período de Referência</td><td><strong>${labelM}</strong></td><td class="lbl">Data de Emissão</td><td>${dataEmissao}</td></tr>
+          <tr><td class="lbl">Cliente / Empresa</td><td><strong>${cliente.nome}</strong></td><td class="lbl">Total de Registros</td><td>${coletas.length} coleta${coletas.length!==1?'s':''} (${conf} confirmada${conf!==1?'s':''})</td></tr>
+        </table>
+        <h3 style="color:#0d1a35;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;padding-bottom:4px;border-bottom:2px solid #1a6fff">2. Registros de Coleta</h3>
+        ${coletas.length?`<table class="relatorio-table rel-cliente">
+          <thead><tr><th>Data</th><th>Empresa Geradora</th><th>Empresa Coletora</th><th>Placa do Caminhão</th><th>Motorista</th><th>Peso da Carga</th></tr></thead>
+          <tbody>${coletas.map(c=>`<tr><td>${fmtData(c.data)}</td><td><strong>${nomeCliente(c.geradoraId)}</strong></td><td>${nomeCliente(c.coletoraId)}</td><td style="font-family:monospace">${c.placa||'—'}</td><td>${c.motorista||'—'}</td><td style="font-weight:600">${c.peso?fmtKg(c.peso):'—'}</td></tr>`).join('')}</tbody>
+          <tfoot><tr><td colspan="5" style="text-align:right;padding-right:10px">TOTAL APURADO (${conf} pesagens confirmadas)</td><td>${fmtKg(totalPeso)}</td></tr></tfoot>
+        </table>`:'<p style="text-align:center;padding:20px;color:#6b7280;font-size:11px">Nenhuma coleta no período.</p>'}
+        ${coletas.some(c=>c.obs)?`<h3 style="color:#0d1a35;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;margin:12px 0 6px;padding-bottom:4px;border-bottom:2px solid #1a6fff">3. Observações</h3>${coletas.filter(c=>c.obs).map(c=>`<p style="font-size:10px;margin-bottom:4px;color:#374151">• <strong>${fmtData(c.data)}</strong> — ${c.obs}</p>`).join('')}`:''}
+        ${relRodapeComAssin(getAssinaturaRodape('relClienteResponsavel'))}
+      </div>
+    </div>`;
+}
+
+// ══════════════════════════
+//  RELATÓRIO PESSOAL
+// ══════════════════════════
+function gerarRelPessoal(){
+  const mes=document.getElementById('relPessoalMes')?.value||MES_REF;
+  const tipo=document.getElementById('relPessoalTipo')?.value||'';
+  const preview=document.getElementById('relPessoalPreview');
+  const{from,to}=mesRange(mes);
+  const labelM=mesLabelFmt(mes);
+  let coletas=(CACHE.coletas||[]).filter(c=>c.data>=from&&c.data<=to&&(!tipo||c.residuo===tipo)).sort((a,b)=>a.data.localeCompare(b.data));
+  const calcV=c=>calcValorColeta(c);
+  const vT=coletas.reduce((s,c)=>s+calcV(c),0),pT=coletas.reduce((s,c)=>s+(c.peso||0),0);
+  const dataEmissao=new Date().toLocaleDateString('pt-BR');
+  // pré-selecionar mês global
+  const rm=document.getElementById('relPessoalMes');if(rm&&!rm.value)rm.value=MES_REF;
+  const wppTxt=`R&R Aparas de Papelão — Relatório Financeiro\nPeríodo: ${labelM}\nTotal: ${fmtBRL(vT)} | Peso: ${fmtKg(pT)}\nEmitido em: ${dataEmissao}`;
+  preview.innerHTML=`${relAcoesHtml(wppTxt)}
+    <div class="relatorio-preview">
+      ${relHeaderHtml('Relatório Financeiro Pessoal — USO INTERNO')}
+      <div class="relatorio-body">
+        <h3 style="color:#0d1a35;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;padding-bottom:4px;border-bottom:2px solid #1a6fff">Resumo — ${labelM}</h3>
+        <table class="rel-info-table" style="margin-bottom:10px">
+          <tr><td class="lbl">Coletas no Período</td><td style="font-weight:700">${coletas.length}</td><td class="lbl">Peso Total</td><td style="font-weight:700">${fmtKg(pT)}</td></tr>
+          <tr><td class="lbl" style="background:#0d1a35;color:#fff">Valor Total — ${labelM}</td><td colspan="3" style="font-weight:700;color:#1d4ed8;font-size:13px;background:#e8f0ff">${fmtBRL(vT)}</td></tr>
+        </table>
+        <h3 style="color:#0d1a35;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;padding-bottom:4px;border-bottom:2px solid #1a6fff">Detalhamento — ${labelM}</h3>
+        ${coletas.length?`<table class="relatorio-table rel-pessoal">
+          <thead><tr><th>Data</th><th>Geradora</th><th>Coletora</th><th>Placa</th><th>Motorista</th><th>Resíduo</th><th>Peso kg</th><th>R$/kg</th><th>Total R$</th></tr></thead>
+          <tbody>${coletas.map(c=>`<tr><td>${fmtData(c.data)}</td><td>${nomeCliente(c.geradoraId)}</td><td>${nomeCliente(c.coletoraId)}</td><td style="font-family:monospace">${c.placa||'—'}</td><td>${c.motorista||'—'}</td><td>${c.residuo||'—'}</td><td style="font-weight:600">${c.peso?c.peso.toLocaleString('pt-BR'):'—'}</td><td>${c.tipoPreco==='unitario'?'Unitário':c.precoKg?c.precoKg.toFixed(2)+'kg':'—'}</td><td style="font-weight:700;color:#15803d">${calcV(c)?fmtBRL(calcV(c)):'—'}</td></tr>`).join('')}</tbody>
+          <tfoot><tr><td colspan="6" style="text-align:right;padding-right:7px">TOTAIS</td><td>${pT.toLocaleString('pt-BR')} kg</td><td>—</td><td>${fmtBRL(vT)}</td></tr></tfoot>
+        </table>`:'<p style="text-align:center;padding:20px;color:#6b7280;font-size:11px">Nenhuma coleta no período.</p>'}
+        <div style="margin-top:10px;padding:7px 10px;background:#fef9e7;border:1px solid #f59e0b;border-radius:4px;font-size:9px;color:#92400e">⚠️ <strong>USO INTERNO.</strong> Não compartilhar com clientes.</div>
+        ${relRodapeComAssin(getAssinaturaRodape('relPessoalResponsavel'))}
+      </div>
+    </div>`;
+}
+
+// ══════════════════════════
+//  CONFIGURAÇÕES
+// ══════════════════════════
+function renderConfiguracoes(){
+  const cfg=CACHE?.config||{};
+  if(cfg.logo){document.getElementById('cfgLogoPlaceholder').style.display='none';const img=document.getElementById('cfgLogoPreview');img.src=cfg.logo;img.style.display='block';document.getElementById('btnRemoverLogo').style.display='inline-flex';}
+  else{document.getElementById('cfgLogoPlaceholder').style.display='flex';document.getElementById('cfgLogoPreview').style.display='none';document.getElementById('btnRemoverLogo').style.display='none';}
+  document.getElementById('cfgNomeEmpresa').value=cfg.nomeEmpresa||'';
+  document.getElementById('cfgFirebaseStatus').innerHTML=`<div style="display:flex;align-items:center;gap:9px;padding:10px;background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.3);border-radius:8px"><span style="font-size:18px">☁️</span><div><div style="font-weight:600;color:var(--success)">Firestore conectado</div><div style="font-size:11px;color:var(--text-muted)">Projeto: r-r-aparas · Sync em tempo real</div></div></div><div style="margin-top:8px;font-size:11px;color:var(--text-muted)">Clientes: <strong>${(CACHE.clientes||[]).length}</strong> · Coletas: <strong>${(CACHE.coletas||[]).length}</strong> · Caminhões: <strong>${(CACHE.transportes||[]).length}</strong></div>`;
+  renderUsuarios();
+}
+function uploadLogo(input){const file=input.files[0];if(!file)return;if(file.size>2*1024*1024){alert('Imagem muito grande. Use até 2MB.');return;}const reader=new FileReader();reader.onload=async e=>{const cfg={...(CACHE.config||{})};cfg.logo=e.target.result;try{await window._fsSet('config','global',cfg);}catch(e){alert('Erro ao salvar configuração: '+(e.message||e));return;}aplicarLogo(e.target.result);atualizarLoginLogo(e.target.result);renderConfiguracoes();};reader.readAsDataURL(file);input.value='';}
+function removerLogo(){if(!confirm('Remover a logo?'))return;const cfg={...(CACHE.config||{})};delete cfg.logo;window._fsSet('config','global',cfg);aplicarLogo(null);atualizarLoginLogo(null);renderConfiguracoes();}
+function aplicarLogo(b){const a=document.getElementById('logoArea');if(b){a.outerHTML=`<img id="logoArea" class="logo-img" src="${b}" alt="Logo">`;}else{document.getElementById('logoArea').outerHTML=`<div id="logoArea" class="logo-icon">R&R</div>`;}}
+async function salvarNomeEmpresa(){const nome=document.getElementById('cfgNomeEmpresa').value.trim();const cfg={...(CACHE.config||{})};if(nome){cfg.nomeEmpresa=nome;}else delete cfg.nomeEmpresa;try{await window._fsSet('config','global',cfg);}catch(e){alert('Erro ao salvar configuração: '+(e.message||e));return;}document.getElementById('brandName').textContent=nome||'R&R Aparas';document.getElementById('loginNomeEmpresa').textContent=nome||'R&R Aparas de Papelão';mostrarMsgBackup('✓ Salvo!','success');}
+function exportarBackup(){const p={versao:'4.0',exportadoEm:new Date().toISOString(),clientes:CACHE.clientes||[],coletas:CACHE.coletas||[],transportes:CACHE.transportes||[],config:CACHE.config||{}};const b=new Blob([JSON.stringify(p,null,2)],{type:'application/json'});const u=URL.createObjectURL(b);const a=document.createElement('a');const ds=new Date().toISOString().slice(0,10).replace(/-/g,'');a.href=u;a.download=`rr-aparas-backup-${ds}.json`;a.click();URL.revokeObjectURL(u);mostrarMsgBackup('✓ Exportado!','success');}
+async function importarBackup(input){const file=input.files[0];if(!file)return;if(!confirm('⚠️ Substituirá TODOS os dados no Firestore. Continuar?')){input.value='';return;}const reader=new FileReader();reader.onload=async e=>{try{const data=JSON.parse(e.target.result);if(!data.clientes||!data.coletas)throw new Error('Inválido.');mostrarMsgBackup('Importando...','info');for(const c of data.clientes)await window._fsSave('clientes',c);for(const c of data.coletas)await window._fsSave('coletas',c);if(data.transportes)for(const t of data.transportes)await window._fsSave('transportes',t);if(data.config)await window._fsSet('config','global',data.config);mostrarMsgBackup('✓ Importado!','success');}catch(err){mostrarMsgBackup('✕ Erro: '+err.message,'danger');}};reader.readAsText(file);input.value='';}
+function mostrarMsgBackup(msg,tipo){const el=document.getElementById('backupMsg');if(!el)return;el.innerHTML=`<div class="alert alert-${tipo}">${msg}</div>`;setTimeout(()=>{if(el)el.innerHTML='';},4000);}
+
+// PWA Service Worker
+if('serviceWorker' in navigator){
+  const swCode=`const C='rr-v1';self.addEventListener('install',e=>e.waitUntil(caches.open(C).then(c=>c.addAll(['./']).catch(()=>{}))));self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).catch(()=>caches.match('./')))));`;
+  const blob=new Blob([swCode],{type:'application/javascript'});
+  navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(()=>{});
+}
+
+// Init: mostrar login primeiro
+document.getElementById('loginScreen').classList.add('hidden');
+document.getElementById('mesSel').style.display='none';
+
+// ══════════════════════════
+//  ASSINATURAS
+// ══════════════════════════
+
+// Comprime imagem base64 para caber no Firestore
+async function comprimirImagem(base64, maxKB) {
+  return new Promise(function(resolve) {
+    if (!base64) { resolve(null); return; }
+    var MAX = (maxKB || 600) * 1024;
+    if (base64.length <= MAX) { resolve(base64); return; }
+    var img = new Image();
+    img.onload = function() {
+      var w = img.width, h = img.height, qualidade = 0.7;
+      var MAX_DIM = 400;
+      if (w > MAX_DIM || h > MAX_DIM) {
+        var ratio = Math.min(MAX_DIM/w, MAX_DIM/h);
+        w = Math.round(w*ratio); h = Math.round(h*ratio);
+      }
+      var canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      var ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#fff'; ctx.fillRect(0,0,w,h);
+      ctx.drawImage(img,0,0,w,h);
+      var result = canvas.toDataURL('image/jpeg', qualidade);
+      while (result.length > MAX && qualidade > 0.2) {
+        qualidade -= 0.1;
+        result = canvas.toDataURL('image/jpeg', qualidade);
+      }
+      resolve(result);
+    };
+    img.onerror = function() { resolve(null); };
+    img.src = base64;
+  });
+}
+
+// Canvas drawing
+var assinDrawing = false, assinCtx = null, assinLastX = 0, assinLastY = 0;
+
+function initCanvas() {
+  var canvas = document.getElementById('assinCanvas');
+  if (!canvas) return;
+  assinCtx = canvas.getContext('2d');
+  var dpr = window.devicePixelRatio || 1;
+  var rect = canvas.getBoundingClientRect();
+  canvas.width = (rect.width || 460) * dpr;
+  canvas.height = 120 * dpr;
+  canvas.style.height = '120px';
+  assinCtx.scale(dpr, dpr);
+  assinCtx.fillStyle = '#fff';
+  assinCtx.fillRect(0, 0, canvas.width, canvas.height);
+  assinCtx.lineCap = 'round'; assinCtx.lineJoin = 'round';
+
+  function getPos(e, c) {
+    var r = c.getBoundingClientRect();
+    var src = e.touches ? e.touches[0] : e;
+    return { x: src.clientX - r.left, y: src.clientY - r.top };
+  }
+  function drawLine(x1,y1,x2,y2) {
+    if (!assinCtx) return;
+    assinCtx.strokeStyle = document.getElementById('assinCor').value || '#000';
+    assinCtx.lineWidth = parseFloat(document.getElementById('assinEspessura').value) || 2;
+    assinCtx.beginPath(); assinCtx.moveTo(x1,y1); assinCtx.lineTo(x2,y2); assinCtx.stroke();
+  }
+
+  canvas.addEventListener('mousedown', function(e) { assinDrawing=true; var p=getPos(e,canvas); assinLastX=p.x; assinLastY=p.y; });
+  canvas.addEventListener('mousemove', function(e) { if(!assinDrawing) return; var p=getPos(e,canvas); drawLine(assinLastX,assinLastY,p.x,p.y); assinLastX=p.x; assinLastY=p.y; });
+  canvas.addEventListener('mouseup', function() { assinDrawing=false; });
+  canvas.addEventListener('mouseleave', function() { assinDrawing=false; });
+  canvas.addEventListener('touchstart', function(e) { e.preventDefault(); assinDrawing=true; var p=getPos(e,canvas); assinLastX=p.x; assinLastY=p.y; }, {passive:false});
+  canvas.addEventListener('touchmove', function(e) { e.preventDefault(); if(!assinDrawing) return; var p=getPos(e,canvas); drawLine(assinLastX,assinLastY,p.x,p.y); assinLastX=p.x; assinLastY=p.y; }, {passive:false});
+  canvas.addEventListener('touchend', function() { assinDrawing=false; });
+}
+
+function limparCanvas() {
+  if (!assinCtx) return;
+  var canvas = document.getElementById('assinCanvas');
+  assinCtx.fillStyle = '#fff';
+  assinCtx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+function switchAssinTab(tab) {
+  var isD = tab === 'desenhar';
+  document.getElementById('painelDesenhar').style.display = isD ? 'block' : 'none';
+  document.getElementById('painelUpload').style.display = isD ? 'none' : 'block';
+  var btnD = document.getElementById('tabDesenhar');
+  var btnU = document.getElementById('tabUpload');
+  if (isD) {
+    btnD.style.background='var(--blue-glow)'; btnD.style.color='var(--blue-light)'; btnD.style.borderColor='var(--blue-main)';
+    btnU.style.background='var(--bg-card2)'; btnU.style.color='var(--text-secondary)'; btnU.style.borderColor='var(--border)';
+  } else {
+    btnU.style.background='var(--blue-glow)'; btnU.style.color='var(--blue-light)'; btnU.style.borderColor='var(--blue-main)';
+    btnD.style.background='var(--bg-card2)'; btnD.style.color='var(--text-secondary)'; btnD.style.borderColor='var(--border)';
+  }
+  window._assinTab = tab;
+}
+
+function carregarFotoAssinatura(input) {
+  var file = input.files[0]; if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var img = document.getElementById('uploadPreviewImg');
+    var placeholder = document.getElementById('uploadPlaceholder');
+    img.src = e.target.result; img.style.display = 'block';
+    placeholder.style.display = 'none';
+    document.getElementById('btnBaixarAssin').style.display = 'inline-flex';
+    window._assinUploadData = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function getAssinaturaAtual() {
+  var tab = window._assinTab || 'desenhar';
+  if (tab === 'upload') return window._assinUploadData || null;
+  var canvas = document.getElementById('assinCanvas');
+  if (!canvas) return null;
+  var ctx = canvas.getContext('2d');
+  var data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+  var hasContent = false;
+  for (var i = 0; i < data.length; i += 4) {
+    if (data[i] < 240 || data[i+1] < 240 || data[i+2] < 240) { hasContent = true; break; }
+  }
+  return hasContent ? canvas.toDataURL('image/jpeg', 0.85) : null;
+}
+
+function baixarAssinatura() {
+  var base64 = getAssinaturaAtual();
+  if (!base64) { alert('Nenhuma assinatura para baixar.'); return; }
+  var nome = (document.getElementById('assinNome').value.trim() || 'assinatura').toLowerCase().replace(/\s+/g,'-');
+  var link = document.createElement('a');
+  link.href = base64; link.download = 'assinatura-' + nome + '.jpg'; link.click();
+}
+
+function abrirModalAssinatura(id) {
+  document.getElementById('assinEditId').value = '';
+  document.getElementById('assinNome').value = '';
+  document.getElementById('assinCargo').value = '';
+  document.getElementById('assinAtualWrap').style.display = 'none';
+  document.getElementById('btnBaixarAssin').style.display = 'none';
+  document.getElementById('uploadPlaceholder').style.display = 'block';
+  document.getElementById('uploadPreviewImg').style.display = 'none';
+  document.getElementById('modalAssinaturaTitulo').textContent = 'Novo Responsável';
+  window._assinUploadData = null;
+  window._assinTab = 'desenhar';
+  switchAssinTab('desenhar');
+  if (id) {
+    var a = (CACHE.assinaturas||[]).find(function(x){return x.id===id;});
+    if (!a) return;
+    document.getElementById('modalAssinaturaTitulo').textContent = 'Editar Responsável';
+    document.getElementById('assinEditId').value = id;
+    document.getElementById('assinNome').value = a.nome || '';
+    document.getElementById('assinCargo').value = a.cargo || '';
+    if (a.imagem) {
+      document.getElementById('assinAtualImg').src = a.imagem;
+      document.getElementById('assinAtualWrap').style.display = 'block';
+      document.getElementById('btnBaixarAssin').style.display = 'inline-flex';
+    }
+  }
+  abrirModal('modalAssinatura');
+  setTimeout(initCanvas, 100);
+}
+
+async function salvarAssinatura() {
+  var nome = document.getElementById('assinNome').value.trim();
+  if (!nome) { alert('Informe o nome do responsável.'); return; }
+  var editId = document.getElementById('assinEditId').value;
+  var novaImagem = getAssinaturaAtual();
+  var existing = editId ? (CACHE.assinaturas||[]).find(function(x){return x.id===editId;}) : null;
+  var imagem = novaImagem || (existing ? existing.imagem : null);
+  if (imagem) imagem = await comprimirImagem(imagem, 600);
+  var obj = {
+    id: editId || uid(),
+    nome: nome,
+    cargo: document.getElementById('assinCargo').value.trim(),
+    imagem: imagem,
+    criadoEm: (existing && existing.criadoEm) || new Date().toISOString()
+  };
+  try {
+    await window._fsSave('assinaturas', obj);
+    fecharModal('modalAssinatura');
+    popularSelectsResponsavel();
+  } catch(e) {
+    alert('Erro ao salvar assinatura: ' + e.message);
+  }
+}
+
+async function deletarAssinatura(id) {
+  if (!confirm('Excluir este responsável?')) return;
+  await window._fsDelete('assinaturas', id);
+}
+
+function renderAssinaturas() {
+  var list = CACHE.assinaturas || [];
+  var el = document.getElementById('assinaturasList');
+  if (!el) return;
+  if (!list.length) {
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted)"><div style="font-size:30px;margin-bottom:8px">✍️</div><p>Nenhum responsável cadastrado</p></div>';
+    return;
+  }
+  el.innerHTML = '';
+  list.forEach(function(a) {
+    var card = document.createElement('div');
+    card.className = 'assin-card';
+
+    var imgEl;
+    if (a.imagem) {
+      imgEl = document.createElement('img');
+      imgEl.className = 'assin-img';
+      imgEl.src = a.imagem;
+      imgEl.alt = 'Assinatura';
+    } else {
+      imgEl = document.createElement('div');
+      imgEl.className = 'assin-img-placeholder';
+      imgEl.textContent = 'Sem assinatura';
+    }
+    card.appendChild(imgEl);
+
+    var info = document.createElement('div');
+    info.className = 'assin-info';
+    var nomeEl = document.createElement('div');
+    nomeEl.className = 'assin-nome';
+    nomeEl.textContent = a.nome;
+    info.appendChild(nomeEl);
+    if (a.cargo) {
+      var cargoEl = document.createElement('div');
+      cargoEl.className = 'assin-sub';
+      cargoEl.textContent = a.cargo;
+      info.appendChild(cargoEl);
+    }
+    card.appendChild(info);
+
+    var actions = document.createElement('div');
+    actions.style.cssText = 'display:flex;gap:5px;flex-shrink:0';
+
+    var btnEdit = document.createElement('button');
+    btnEdit.className = 'btn btn-secondary btn-sm btn-icon';
+    btnEdit.title = 'Editar';
+    btnEdit.textContent = '✏️';
+    btnEdit.addEventListener('click', (function(id){ return function(){ abrirModalAssinatura(id); }; })(a.id));
+
+    var btnDel = document.createElement('button');
+    btnDel.className = 'btn btn-danger btn-sm btn-icon';
+    btnDel.title = 'Excluir';
+    btnDel.textContent = '🗑️';
+    btnDel.addEventListener('click', (function(id){ return function(){ deletarAssinatura(id); }; })(a.id));
+
+    actions.appendChild(btnEdit);
+    actions.appendChild(btnDel);
+    card.appendChild(actions);
+    el.appendChild(card);
+  });
+}
+
+function popularSelectsResponsavel() {
+  var list = CACHE.assinaturas || [];
+  var opts = '<option value="">Sem assinatura</option>' + list.map(function(a) {
+    return '<option value="'+a.id+'">'+a.nome+(a.cargo?' — '+a.cargo:'')+'</option>';
+  }).join('');
+  var selC = document.getElementById('relClienteResponsavel');
+  var selP = document.getElementById('relPessoalResponsavel');
+  if (selC) selC.innerHTML = opts;
+  if (selP) selP.innerHTML = opts;
+}
+
+function getAssinaturaRodape(selId) {
+  var id = document.getElementById(selId) ? document.getElementById(selId).value : '';
+  if (!id) return null;
+  return (CACHE.assinaturas||[]).find(function(x){return x.id===id;}) || null;
+}
+
+// Rodapé com assinatura (substitui relRodapeHtml nos relatórios)
+function relRodapeComAssin(responsavel) {
+  var cfg = CACHE && CACHE.config ? CACHE.config : {};
+  var n = cfg.nomeEmpresa || 'R&R Aparas de Papelão';
+  var assinHtml = responsavel && responsavel.imagem
+    ? '<img src="'+responsavel.imagem+'" style="max-height:40px;max-width:160px;object-fit:contain;display:block;margin:4px auto 2px">'
+    : '<div style="height:32px;border-bottom:1px solid #333;width:160px;margin:0 auto 2px"></div>';
+  var nomeResp = (responsavel && responsavel.nome) ? responsavel.nome : n;
+  var cargoResp = (responsavel && responsavel.cargo) ? responsavel.cargo : '';
+  return '<div style="margin-top:18px;border-top:2px solid #0d1a35;padding-top:8px;display:flex;justify-content:space-between;align-items:flex-end;font-size:9px;color:#555">' +
+    '<div><strong style="color:#0d1a35;font-size:10px">'+n+'</strong><br>(11) 93909-3919 · contato.reraparas@gmail.com</div>' +
+    '<div style="text-align:center;color:#0d1a35;font-weight:600;font-size:10px">Responsável pelo Lançamento<br>'+assinHtml+'<span style="font-size:11px">'+nomeResp+'</span>'+(cargoResp?'<br><span style="font-size:9px;font-weight:400">'+cargoResp+'</span>':'')+'</div>' +
+    '<div style="text-align:right">@reraparasdepapelao<br>R&R Aparas de Papelão</div></div>';
+}
+
+
+
+// Capturar erros não tratados e alertar usuário
+window.addEventListener('unhandledrejection', function(e) {
+  var msg = e.reason && e.reason.message ? e.reason.message : String(e.reason);
+  if (msg.includes('permission') || msg.includes('Permission')) {
+    console.error('Firestore permission error:', msg);
+    // Não alertar — pode ser erro de leitura em background
+  } else if (msg && msg !== 'undefined') {
+    console.error('Erro não tratado:', msg);
+  }
+});
+
+
+// Alterna entre filtro de Mês e Semana no relatório do cliente
+function toggleRelClientePeriodo() {
+  var tipo = document.getElementById('relClientePeriodoTipo').value;
+  var mesWrap = document.getElementById('relClienteMesWrap');
+  var semWrap = document.getElementById('relClienteSemanaWrap');
+  if (tipo === 'semana') {
+    mesWrap.style.display = 'none';
+    semWrap.style.display = 'block';
+    // Pré-preencher semana atual se vazio
+    var semInput = document.getElementById('relClienteSemana');
+    if (!semInput.value) {
+      var now = new Date();
+      var onejan = new Date(now.getFullYear(), 0, 1);
+      var weekNum = Math.ceil((((now - onejan) / 86400000) + onejan.getDay() + 1) / 7);
+      semInput.value = now.getFullYear() + '-W' + String(weekNum).padStart(2, '0');
+    }
+  } else {
+    mesWrap.style.display = 'block';
+    semWrap.style.display = 'none';
+  }
+  gerarRelCliente();
+}
+
+// Converte input type="week" (YYYY-Www) em range de datas (segunda a domingo)
+function semanaRange(semanaStr) {
+  if (!semanaStr) return null;
+  var parts = semanaStr.split('-W');
+  var ano = parseInt(parts[0]), semana = parseInt(parts[1]);
+  // ISO 8601: semana 1 contém a primeira quinta-feira do ano
+  var simple = new Date(ano, 0, 1 + (semana - 1) * 7);
+  var dow = simple.getDay();
+  var isoWeekStart = new Date(simple);
+  if (dow <= 4) isoWeekStart.setDate(simple.getDate() - simple.getDay() + 1);
+  else isoWeekStart.setDate(simple.getDate() + 8 - simple.getDay());
+  var isoWeekEnd = new Date(isoWeekStart);
+  isoWeekEnd.setDate(isoWeekStart.getDate() + 6);
+  function fmt(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+  return { from: fmt(isoWeekStart), to: fmt(isoWeekEnd), inicio: isoWeekStart, fim: isoWeekEnd };
+}
+
+// Label legível do período semanal
+function semanaLabelFmt(semanaStr) {
+  var r = semanaRange(semanaStr);
+  if (!r) return 'Semana não definida';
+  var dd = function(d){ return String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0'); };
+  return 'Semana de ' + dd(r.inicio) + ' a ' + dd(r.fim) + '/' + r.fim.getFullYear();
+}
+
+
+function toggleTipoPreco() {
+  var tipo = document.querySelector('input[name="cTipoPreco"]:checked').value;
+  var wrapKg   = document.getElementById('cPrecoKgWrap');
+  var wrapUnit = document.getElementById('cPrecoUnitWrap');
+  var lblKg    = document.getElementById('lblTipoKg');
+  var lblUnit  = document.getElementById('lblTipoUnit');
+  if (tipo === 'unitario') {
+    wrapKg.style.display   = 'none';
+    wrapUnit.style.display = 'block';
+    lblUnit.style.borderColor = 'var(--blue-main)';
+    lblUnit.style.color       = 'var(--blue-light)';
+    lblUnit.style.background  = 'var(--blue-glow)';
+    lblKg.style.borderColor   = 'var(--border)';
+    lblKg.style.color         = 'var(--text-secondary)';
+    lblKg.style.background    = 'var(--bg-card2)';
+  } else {
+    wrapKg.style.display   = 'block';
+    wrapUnit.style.display = 'none';
+    lblKg.style.borderColor  = 'var(--blue-main)';
+    lblKg.style.color        = 'var(--blue-light)';
+    lblKg.style.background   = 'var(--blue-glow)';
+    lblUnit.style.borderColor = 'var(--border)';
+    lblUnit.style.color       = 'var(--text-secondary)';
+    lblUnit.style.background  = 'var(--bg-card2)';
+  }
+  calcTotal();
+}
+
+function toggleConfTipoPreco() {
+  var tipo = document.querySelector('input[name="confTipoPreco"]:checked').value;
+  var wrapKg   = document.getElementById('confPrecoKgWrap');
+  var wrapUnit = document.getElementById('confPrecoUnitWrap');
+  var lblKg    = document.getElementById('lblConfTipoKg');
+  var lblUnit  = document.getElementById('lblConfTipoUnit');
+  if (tipo === 'unitario') {
+    wrapKg.style.display   = 'none';
+    wrapUnit.style.display = 'block';
+    lblUnit.style.borderColor = 'var(--blue-main)';
+    lblUnit.style.color       = 'var(--blue-light)';
+    lblUnit.style.background  = 'var(--blue-glow)';
+    lblKg.style.borderColor   = 'var(--border)';
+    lblKg.style.color         = 'var(--text-secondary)';
+    lblKg.style.background    = 'var(--bg-card2)';
+  } else {
+    wrapKg.style.display   = 'block';
+    wrapUnit.style.display = 'none';
+    lblKg.style.borderColor  = 'var(--blue-main)';
+    lblKg.style.color        = 'var(--blue-light)';
+    lblKg.style.background   = 'var(--blue-glow)';
+    lblUnit.style.borderColor = 'var(--border)';
+    lblUnit.style.color       = 'var(--text-secondary)';
+    lblUnit.style.background  = 'var(--bg-card2)';
+  }
+  calcConfTotal();
+}
+
+function calcTotal() {
+  var tipo = document.querySelector('input[name="cTipoPreco"]:checked');
+  tipo = tipo ? tipo.value : 'kg';
+  var p = parseFloat(document.getElementById('cPeso').value) || 0;
+  var t = 0;
+  if (tipo === 'unitario') {
+    t = parseFloat(document.getElementById('cPrecoUnit').value) || 0;
+  } else {
+    var r = parseFloat(document.getElementById('cPrecoKg').value) || 0;
+    t = p * r;
+  }
+  document.getElementById('cTotal').value = t > 0 ? fmtBRL(t) : '';
+}
+
+function calcConfTotal() {
+  var tipo = document.querySelector('input[name="confTipoPreco"]:checked');
+  tipo = tipo ? tipo.value : 'kg';
+  var p = parseFloat(document.getElementById('confPeso').value) || 0;
+  var t = 0;
+  if (tipo === 'unitario') {
+    t = parseFloat(document.getElementById('confPrecoUnit').value) || 0;
+  } else {
+    var r = parseFloat(document.getElementById('confPrecoKg').value) || 0;
+    t = p * r;
+  }
+  document.getElementById('confTotal').value = t > 0 ? fmtBRL(t) : '';
+}
+
+
+// Calcula o valor de uma coleta considerando o tipo de precificação
+function calcValorColeta(c) {
+  if (!c) return 0;
+  if (c.tipoPreco === 'unitario') return c.precoUnit || 0;
+  return (c.peso || 0) * (c.precoKg || 0);
+}
+
+</script>
+</body>
+</html>
